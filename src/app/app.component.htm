@@ -1,0 +1,24 @@
+<style>
+  :root {
+    --background: #374046;
+    --primary: #f0db4f;
+  }
+
+  html,
+  body,
+  app-root {
+    height: 100%;
+  }
+
+  app-root {
+    display: block;
+  }
+</style>
+<section class="flex h-full">
+  <main class="flex flex-col flex-grow items-start w-9/12">
+    <app-code-editor class="w-full" (change)="this.onCodeChange($event)" (run)="this.onRun()"></app-code-editor>
+  </main>
+  <aside class="h-full text-gray-100 p-4 font-mono content-start w-3/12">
+    <pre [innerText]="this.output"></pre>
+  </aside>
+</section>

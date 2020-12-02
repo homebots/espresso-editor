@@ -1,0 +1,9 @@
+:root {
+  --background: #374046;
+  --primary: #f0db4f;
+}
+
+html,
+body {
+  height: 100%;
+}
