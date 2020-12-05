@@ -1,5 +1,6 @@
 import { Injectable } from '@homebots/elements';
 import { createParser } from './parser';
+import { Node } from './tokens';
 
 class Context {
   identifiers = new Map();
@@ -9,22 +10,27 @@ class Context {
 
 @Injectable()
 export class Compiler {
-  private compiler = createParser();
+  private compiler = createParser(this);
 
   compile(code: string) {
     const nodes = this.compiler.parse(code);
-    const context = new Context();
-
-    this.resolveIdentifiers(nodes, context);
-    this.findLabelLocations(nodes, context);
-    return this.transform(nodes, context);
+    // const context = new Context();
+    // this.resolveIdentifiers(nodes, context);
+    // this.findLabelLocations(nodes, context);
+    return nodes;
   }
 
-  resolveIdentifiers(nodes: Node[], context: Context) {}
+  digest(nodes: Node[]) {
+    return this.reduce(nodes.filter(Boolean));
+  }
 
-  transform(nodes: Node[], context: Context) {}
+  // resolveIdentifiers(nodes: Node[], context: Context) {}
 
-  findLabelLocations(nodes: Node[], context: Context) {}
+  // findLabelLocations(nodes: Node[], context: Context) {}
+
+  // transform(nodes: Node[], _: Context) {
+  //   return nodes;
+  // }
 
   reduce(nodes: Node[]) {
     return nodes.reduce((stream, node) => stream.concat(node.bytes), []);

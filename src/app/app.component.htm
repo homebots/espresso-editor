@@ -28,7 +28,7 @@
   }
 
   .table tbody tr:nth-child(even) td {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.05);
   }
 
   .table th,
@@ -37,9 +37,14 @@
     padding: 0.5rem 1rem;
     text-align: left;
   }
-  .table .code {
+  .table tbody td:first-child {
     font-family: monospace;
-    white-space: nowrap;
+  }
+  .table hr {
+    margin: 0.5rem 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    display: block;
+    width: 100%;
   }
 
   .output {
@@ -61,9 +66,14 @@
     background-size: 5.66px 5.66px;
   }
 </style>
-<section class="flex h-full px-2 text-white">
+<section class="flex h-full px-2 text-gray-400">
   <aside class="flex-none p-4 w-1/4 shadow-lg">
     <div class="text-right">
+      <!-- <button
+        class="text-gray-300 hover:bg-gray-700 hover:text-white text-left px-3 py-2 rounded-md text-sm font-medium"
+      >
+        Reset
+      </button> -->
       <button
         (click)="this.onRun()"
         class="bg-primary text-gray-800 hover:text-black text-left px-3 py-2 rounded-md text-sm font-medium"
@@ -71,24 +81,35 @@
         Run
       </button>
     </div>
-    <!-- <button
-      class="text-gray-300 hover:bg-gray-700 hover:text-white text-left px-3 py-2 rounded-md text-sm font-medium w-full block"
-    >
-      Docs
-    </button> -->
     <hr class="border-0 border-solid border-t-2 border-primary my-4 opacity-50" />
     <h2 class="text-lg mb-3">Instructions:</h2>
-    <table class="table border-collapse table-fixed">
+    <table class="table border-collapse w-full">
       <thead>
         <tr>
-          <th class="bg-gray-700">Code</th>
+          <th class="bg-gray-700">Instruction</th>
           <th class="bg-gray-700">Description</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td class="code">@label</td>
-          <td>Creates a label for code jumps.</td>
+          <td class="code">@label, @foo</td>
+          <td>Creates a marker for code jumps.</td>
+        </tr>
+        <tr>
+          <td class="code">noop</td>
+          <td>Do nothing.</td>
+        </tr>
+        <tr>
+          <td class="code">exit</td>
+          <td>Stop program execution.</td>
+        </tr>
+        <tr>
+          <td class="code">
+            print system info
+            <hr />
+            sysinfo
+          </td>
+          <td>Stop program execution.</td>
         </tr>
       </tbody>
     </table>
@@ -106,7 +127,7 @@
         ></div>
       </div>
       <div class="page-divider flex-none"></div>
-      <h2 class="mb-2 p-2 flex-none bg-gray-800">Output program:</h2>
+      <h2 class="mb-2 p-2 flex-none bg-gray-800 text-gray-600">Output program:</h2>
       <textarea
         class="bg-transparent flex-1 resize-none font-mono block w-full"
         (click)="$event.target.select()"

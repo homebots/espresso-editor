@@ -1,4 +1,4 @@
-program = all:(i:statement ws?)* { return _.compile(all.map(i => i[0]))  }
+program = all:(i:statement ws?)* { return _.digest(all.map(i => i[0]))  }
 
 equal = "="
 zero  = "0" { return 0 }
@@ -13,7 +13,7 @@ int32 = digit_19 digit? digit? digit? digit? digit? digit? digit? { return _.toI
 byte = "0x" value:(hex hex) { return parseInt(text(), 16) }
 byte32 = "0x" hex32
 false = "false" { return 0; }
-true  = "true"  { return 1;  }
+true  = "true"  { return 1; }
 ws = [ \t\n\r]*
 space = [ ]
 spaces =  [ ]+
@@ -21,26 +21,37 @@ newline = [\n\r]
 quote = "'"
 alpha = [a-z]i
 alphaOrNumber  = [a-z0-9]i
-string = quote chars:[^']* quote { return chars.map(s => s.charCodeAt(0)).concat([0]); }
-value_separator = ws? "," ws { return skip() }
+string = quote chars:[^']* quote { return chars.map(s => String(s).charCodeAt(0)).concat([0]); }
+value_separator = ws? "," ws { return new T.SkipNode() }
 variable = "$" name:(alpha alphaOrNumber*) { return _.getOrCreateVarName(name[0] + name[1].join('')); }
 variableReference = "$" name:(alpha alphaOrNumber*) { return _.getVarName(name[0] + name[1].join('')); }
 pin = "pin " up_to_16 { return parseInt(text().replace('pin ', '')) }
 pinMode = mode:("input"/"output"/"open drain"/"input pull-up"/"tx"/"rx") { return text() }
-
-statement = label
-/*
-  label / i:instruction instructionEnd { return i } / condition
-
-label = "@" label:(alpha (alpha/digit)* newline?) { return _.createNode('label', text().trim()) }
-
 instructionEnd = spaces? newline / spaces? ";"
 
+statement =
+  label / comment / i:instruction instructionEnd { return i }
+
+comment =
+  "//" space ([^\n])* newline { return new T.SkipNode() }
+
+label =
+  "@" label:(alpha (alpha/digit)*) { return new T.LabelNode({ label: text().trim() }) }
+
 instruction =
-comment /
-halt /
-noop /
-sysinfo /
+  noop / exit / sysinfo
+
+noop =
+  "noop" { return new T.NoopNode() }
+
+exit =
+  "exit" { return new T.HaltNode() }
+
+sysinfo =
+  ("print system info" / "sysinfo") { return new T.SysInfoNode() }
+
+
+/*
 variable_assign_int /
 variable_assign_byte /
 iowrite /
@@ -64,18 +75,6 @@ variable_assign_int =
 
 variable_assign_byte =
   variable:variable spaces equal spaces byte:byte { return _.opcode([c_push_b, variable, byte]) }
-
-comment =
-  "//" space ([^\n])* newline { return _.skip() }
-
-halt =
-  "halt" { return _.opcode([c_halt]) }
-
-noop =
-  "noop" { return _.opcode([c_noop]) }
-
-sysinfo =
-  "sysinfo" { return _.opcode([c_sysinfo]) }
 
 dump =
   "dump" { return _.opcode([c_dump]) }

@@ -21,7 +21,7 @@ newline = [\n\r]
 quote = "'"
 alpha = [a-z]i
 alphaOrNumber  = [a-z0-9]i
-string = quote chars:[^']* quote { return chars.map(s => s.charCodeAt(0)).concat([0]); }
+string = quote chars:[^']* quote { return chars.map(s => String(s).charCodeAt(0)).concat([0]); }
 value_separator = ws? "," ws { return skip() }
 variable = "$" name:(alpha alphaOrNumber*) { return _.getOrCreateVarName(name[0] + name[1].join('')); }
 variableReference = "$" name:(alpha alphaOrNumber*) { return _.getVarName(name[0] + name[1].join('')); }
