@@ -1,6 +1,6 @@
 <style>
   :root {
-    --background: #374046;
+    --gray: #374046;
     --primary: #f0db4f;
   }
 
@@ -13,12 +13,48 @@
   app-root {
     display: block;
   }
+
+  .bg-primary {
+    background-color: var(--primary);
+  }
+
+  .bg-gray {
+    background-color: var(--gray);
+  }
+
+  .text-primary {
+    color: var(--primary);
+  }
 </style>
-<section class="flex h-full">
-  <main class="flex flex-col flex-grow items-start w-9/12">
-    <app-code-editor class="w-full" (change)="this.onCodeChange($event)" (run)="this.onRun()"></app-code-editor>
+<section class="flex h-full px-2">
+  <nav class="flex-none p-4 w-1/6">
+    <button
+      (click)="this.onRun()"
+      class="bg-primary text-gray-800 hover:text-black text-left px-3 py-2 rounded-md text-sm font-medium w-full block"
+    >
+      Run
+    </button>
+    <button
+      class="text-gray-300 hover:bg-gray-700 hover:text-white text-left px-3 py-2 rounded-md text-sm font-medium w-full block"
+    >
+      Docs
+    </button>
+  </nav>
+
+  <main class="flex flex-col flex-grow items-start">
+    <app-code-editor class="w-full" (change)="this.onCodeChange($event)"></app-code-editor>
+    <div
+      [innerHTML]="this.errorMessage"
+      [class.hidden]="!this.errorMessage"
+      class="bg-primary text-gray-800 px-3 py-2 text-sm font-medium w-full"
+    ></div>
   </main>
-  <aside class="h-full text-gray-100 p-4 font-mono content-start w-3/12">
-    <pre [innerText]="this.output"></pre>
+  <aside class="h-full text-gray-100 p-4 font-mono content-start w-1/4 flex-none">
+    <textarea
+      class="w-full h-full bg-transparent resize-none"
+      (click)="$event.target.select()"
+      [value]="this.outputJson"
+      readonly
+    ></textarea>
   </aside>
 </section>

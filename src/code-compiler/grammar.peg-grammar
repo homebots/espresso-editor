@@ -1,180 +1,20 @@
-{
-  const c_halt = 0xfe;           // -
-const c_sysinfo = 0xfd;        // -
-const c_restart = 0xfc;        // -
-const c_debug = 0xfb;          // -
-const c_yield = 0xfa;          // -
-const c_dump = 0xf9;           // -
-const c_noop = 0x01;           // -
-const c_delay = 0x02;          // uint32 delay
-const c_print = 0x03;          // uint8[] message
-const c_jump = 0x04;           // uint32 address
-const c_memget = 0x05;         // uint8 slot, int32 address
-const c_memset = 0x06;         // int32 address, uint8 slot
-const c_push_b = 0x07;         // uint8 slot, int8 value
-const c_push_i = 0x08;         // uint8 slot, int32 value
-const c_gt = 0x09;             // uint8 slot, uint8 b, uint8 b
-const c_gte = 0x0a;            // uint8 slot, uint8 b, uint8 b
-const c_lt = 0x0b;             // uint8 slot, uint8 b, uint8 b
-const c_lte = 0x0c;            // uint8 slot, uint8 b, uint8 b
-const c_equal = 0x0d;          // uint8 slot, uint8 b, uint8 b
-const c_notequal = 0x0e;       // uint8 slot, uint8 b, uint8 b
-const c_jumpif = 0x0f;         // uint8 slot, uint32 address
-const c_xor = 0x10;            // uint8 slot, uint8 a, uint8 b
-const c_and = 0x11;            // uint8 slot, uint8 a, uint8 b
-const c_or = 0x12;             // uint8 slot, uint8 a, uint8 b
-const c_not = 0x13;            // uint8 slot
-const c_inc = 0x14;            // uint8 slot
-const c_dec = 0x15;            // uint8 slot
-const c_add = 0x16;            // uint8 slot, uint8 slot
-const c_sub = 0x17;            // uint8 slot, uint8 slot
-const c_mul = 0x18;            // uint8 slot, uint8 slot
-const c_div = 0x19;            // uint8 slot, uint8 slot
-const c_mod = 0x1a;            // uint8 slot, uint8 slot
-const c_iowrite = 0x31;        // uint8 pin, uint8 slot
-const c_ioread = 0x32;         // uint8 slot, uint8 pin
-const c_iomode = 0x35;         // uint8 pin, uint8 slot
-const c_iotype = 0x36;         // uint8 pin, uint8 slot
-const c_wificonnect = 0x3a;    // uint8 pin, uint8 slot
-const c_wifidisconnect = 0x3b; // uint8 pin, uint8 slot
-const c_wifistatus = 0x3c;     // uint8 pin, uint8 slot
-const c_wifilist = 0x3e;       // uint8 pin, uint8 slot
-const c_sleep = 0x3f;          // uint8 mode, uint32 time
-const c_i2setup = 0x40;        // -
-const c_i2start = 0x41;        // -
-const c_i2stop = 0x42;         // -
-const c_i2write = 0x43;        // uint8 byte
-const c_i2read = 0x44;         // uint8 slot
-const c_i2setack = 0x45;       // uint8 byte
-const c_i2getack = 0x46;       // uint8 byte
-const c_i2find = 0x48;         // uint8 slot
-const c_i2writeack = 0x49;     // uint32 length, uint* bytes
-const c_i2writeack_b = 0x4a;   // uint8 byte
+program = w:(i:statement ws?)* { return _.compile(w.map(i => i[0]))  }
 
-  const $skip = Symbol("skip");
-  const varNames = new Map();
-  const t_label = 1;
-  const t_op = 2;
-  const t_jump = 3;
+statement =
+  label / i:instruction instructionEnd { return i } / condition
 
-  function zeroPad(s) {
-    return (s.length === 1 ? "0" : "") + s;
-  }
-  function parseHex(x) {
-    return parseInt(x, 16);
-  }
-  function parseInt32(hex) {
-    return hex
-      .split(" ")
-      .map(parseHex)
-      .map((n, i) => n << (8 * (3 - i)))
-      .reduce((a, n) => new Uint32Array([n])[0] + a, 0);
-  }
-  function toInt32Hex(number) {
-    return toInt32(number).map((x) => zeroPad(x.toString(16)));
-  }
-  function toInt32(number) {
-    return Array.from(new Uint8Array(new Uint32Array([number]).buffer));
-  }
-  function skip() {
-    return $skip;
-  }
-  function createNode(type, value, length, extraProperties = {}) {
-    return { type, size: length, value, ...extraProperties };
-  }
-  function opcode(value) {
-    return createNode(t_op, value, value.length);
-  }
-  function jumpTo(label) {
-    return createNode(t_jump, [c_jump], 0, { label: label.value });
-  }
-  function jumpIf(variable, label) {
-    return createNode(t_jump, [c_jumpif, variable], 0, { label: label.value });
-  }
-
-  function countBytesUntil(array, index) {
-    return array.slice(0, index).reduce((total, node) => total + node.size, 0);
-  }
-  function getOrCreateVarName(name) {
-  	if (!varNames.has(name)) {
-    	console.log(name, varNames.size)
-    	varNames.set(name, varNames.size)
-    }
-
-	return varNames.get(name);
-  }
-
-  function getVarName(name) {
-  	if (!varNames.has(name)) {
-    	throw new Error('Variable "' + name + '" not declared');
-    }
-
-    return varNames.get(name);
-  }
-
-  const labelLocations = new Map();
-
-  function concatenate(stack, item) {
-    return stack.concat(item.value);
-  }
-
-  function findLabels(context) {
-    return function (item, index) {
-      if (item.type === t_label) {
-        context.labelLocations.set(item.value, index);
-        return;
-      }
-
-      return item;
-    };
-  }
-
-  function addLabelJumps(context) {
-    return function (item, _, array) {
-      if (item.type === t_jump) {
-        const location = context.labelLocations.get(item.label);
-        const offset = countBytesUntil(array, location);
-        const bytes = toInt32(offset);
-        item.value = item.value.concat(bytes);
-        item.type = t_op;
-      }
-
-      return item;
-    };
-  }
-
-  function compile(stream) {
-    labelLocations.clear();
-    const context = {
-      labelLocations,
-      stream,
-      byteCounter: 0,
-    };
-
-    return stream
-      .filter((x) => x !== $skip)
-      .map(findLabels(context))
-      .filter(Boolean)
-      .map(addLabelJumps(context))
-      .reduce(concatenate, []);
-  }
-}
-
-program = w:(i:statement ws?)* { return compile(w.map(i => i[0]))  }
-statement = label / i:instruction instructionEnd { return i } / condition
-
-instructionEnd = spaces?newline / spaces?";"
+instructionEnd = spaces? newline / spaces? ";"
 equal = "="
 zero  = "0" { return 0 }
 digit  = [0-9]
 digit_19 = [1-9]
-up_to_16 = n:digit { return parseInt(n) } / [1] [0-6] { return parseInt(text()) }
+up_to_16 = n:digit { return _.parseInt(n) } / [1] [0-6] { return _.parseInt(text()) }
 hex = [0-9a-f]i
-hex32 = value:(hex hex space hex hex space hex hex space hex hex) { return text().split(' ').map(parseHex) }
+hex32 = value:(hex hex space hex hex space hex hex space hex hex) { return text().split(' ').map(_.parseHex) }
 decimal = digit_19 digit* { return parseInt(text()) }
 number = zero / decimal
-int32 = digit_19 digit? digit? digit? digit? digit? digit? digit? { return toInt32(parseInt(text())) }
-byte = "0x" value:(hex hex) { return parseInt(text(), 16) }
+int32 = digit_19 digit? digit? digit? digit? digit? digit? digit? { return _.toInt32(_.parseInt(text())) }
+byte = "0x" value:(hex hex) { return _.parseInt(text(), 16) }
 byte32 = "0x" hex32
 false = "false" { return 0; }
 true  = "true"  { return 1;  }
@@ -187,11 +27,12 @@ alpha = [a-z]i
 alphaOrNumber  = [a-z0-9]i
 string = quote chars:[^']* quote { return chars.map(s => s.charCodeAt(0)).concat([0]); }
 value_separator = ws? "," ws { return skip() }
-variable = "$" name:(alpha alphaOrNumber*) { return getOrCreateVarName(name[0] + name[1].join('')); }
-variableReference = "$" name:(alpha alphaOrNumber*) { return getVarName(name[0] + name[1].join('')); }
-pin = "pin " up_to_16 { return parseInt(text().replace('pin ', '')) }
+variable = "$" name:(alpha alphaOrNumber*) { return _.getOrCreateVarName(name[0] + name[1].join('')); }
+variableReference = "$" name:(alpha alphaOrNumber*) { return _.getVarName(name[0] + name[1].join('')); }
+pin = "pin " up_to_16 { return _.parseInt(text().replace('pin ', '')) }
+pinMode = mode:("input"/"output"/"open drain"/"input pull-up"/"tx"/"rx") { return text() }
 
-label = "@" label:(alpha (alpha/digit)* newline?) { return createNode(t_label, text().trim()) }
+label = "@" label:(alpha (alpha/digit)* newline?) { return _.createNode('label', text().trim()) }
 
 instruction =
 comment /
@@ -202,6 +43,7 @@ variable_assign_int /
 variable_assign_byte /
 iowrite /
 ioread /
+iomode /
 jumpTo /
 jumpIf /
 delay /
@@ -216,65 +58,68 @@ memset /
 unary_operation
 
 variable_assign_int =
-  variable:variable spaces equal spaces number:number { return opcode([c_push_i, variable, parseInt(number)]) }
+  variable:variable spaces equal spaces number:number { return _.opcode([c_push_i, variable, parseInt(number)]) }
 
 variable_assign_byte =
-  variable:variable spaces equal spaces byte:byte { return opcode([c_push_b, variable, byte]) }
+  variable:variable spaces equal spaces byte:byte { return _.opcode([c_push_b, variable, byte]) }
 
 comment =
-  "//" space ([^\n])* newline { return skip() }
+  "//" space ([^\n])* newline { return _.skip() }
 
 halt =
-  "halt" { return opcode([c_halt]) }
+  "halt" { return _.opcode([c_halt]) }
 
 noop =
-  "noop" { return opcode([c_noop]) }
+  "noop" { return _.opcode([c_noop]) }
 
 sysinfo =
-  "sysinfo" { return opcode([c_sysinfo]) }
+  "sysinfo" { return _.opcode([c_sysinfo]) }
 
 dump =
-  "dump" { return opcode([c_dump]) }
+  "dump" { return _.opcode([c_dump]) }
 
 restart =
-  "restart" { return opcode([c_restart]) }
+  "restart" { return _.opcode([c_restart]) }
 
 yield =
-  "yield" { return opcode([c_yield]) }
+  "yield" { return _.opcode([c_yield]) }
 
 debug =
-  "enable logs" { return opcode([c_debug]) }
+  "enable logs" { return _.opcode([c_debug]) }
 
 print =
-  "print" spaces s:string { return opcode([c_print, ...s]) }
+  "print" spaces s:string { return _.opcode([c_print, ...s]) }
 
 iowrite =
-  "write" spaces variable:variableReference spaces "to" spaces pin:pin { return opcode([c_iowrite, pin, variable]) } /
-  "$" pin:up_to_16 spaces "=" spaces variable:variableReference { return opcode([c_iowrite, pin, variable]) }
+  "write" spaces variable:variableReference spaces "to" spaces pin:pin { return _.opcode([c_iowrite, pin, variable]) } /
+  "$" pin:up_to_16 spaces "=" spaces variable:variableReference { return _.opcode([c_iowrite, pin, variable]) }
 
 ioread =
-  "read" spaces pin:pin spaces "into" spaces variable:variable { return opcode([c_ioread, variable, pin]) }
+  "read" spaces pin:pin spaces "into" spaces variable:variable { return _.opcode([c_ioread, variable, pin]) }
+
+iomode =
+  "set" spaces pin:pin spaces "mode to" spaces mode:pinMode { return _.pinMode(pin, mode) }
 
 jumpTo =
-  "jump to" spaces label:label { return jumpTo(label) }
+  "jump to" spaces label:label { return _.jumpTo(label) }
 
 jumpIf =
-  "if" spaces variable:variableReference spaces "jump to" spaces label:label { return jumpIf(variable, label) }
+  "if" spaces variable:variableReference spaces "jump to" spaces label:label { return _.jumpIf(variable, label) }
 
 delay =
-  "wait" spaces time:int32 { return opcode([c_delay, ...time]) }
+  "wait" spaces time:int32 { return _.opcode([c_delay, ...time]) }
 
 memget =
-  variable:variable spaces "=" spaces "[" address:int32 "]" { return opcode([c_memget, variable, ...address]) }
+  variable:variable spaces "=" spaces "[" address:int32 "]" { return _.opcode([c_memget, variable, ...address]) }
 
 memset =
-  "[" address:int32 "]" spaces "=" spaces variable:variable { return opcode([c_memset, ...address, variable]) }
+  "[" address:int32 "]" spaces "=" spaces variable:variable { return _.opcode([c_memset, ...address, variable]) }
 
 unary_operation =
     not
 
 not =
-  "invert" spaces x:variableReference { return opcode([c_not, x]) }
+  "invert" spaces x:variableReference { return _.opcode([c_not, x]) }
 
 condition =
   "if" comparator "then"
@@ -282,4 +127,4 @@ condition =
 comparator = c:(gt) { return c }
 
 gt =
-  "gt" target:variable value_separator a:variable value_separator b:variable { return opcode(["if", target, a, b]) }
+  "gt" target:variable value_separator a:variable value_separator b:variable { return _.opcode(["if", target, a, b]) }
