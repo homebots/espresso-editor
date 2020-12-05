@@ -1,6 +1,7 @@
 import { c_jump, c_jumpif } from './constants';
 
 export * from './constants';
+/*
 
 const $skip = Symbol('skip');
 const varNames = new Map();
@@ -110,7 +111,7 @@ export function addLabelJumps(context) {
   };
 }
 
-export function compile(stream) {
+export function compile(stream: any[]) {
   labelLocations.clear();
 
   const context = {
@@ -126,3 +127,4 @@ export function compile(stream) {
     .map(addLabelJumps(context))
     .reduce(concatenate, []);
 }
+*/

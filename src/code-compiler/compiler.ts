@@ -1,14 +1,32 @@
 import { Injectable } from '@homebots/elements';
-import * as peg from 'pegjs';
-import * as helpers from './helpers';
-import grammar from './grammar.peg-grammar';
+import { createParser } from './parser';
+
+class Context {
+  identifiers = new Map();
+  labelPositions = new Map();
+  stream = [];
+}
 
 @Injectable()
 export class Compiler {
-  private parserCode = peg.generate(grammar, { output: 'source', optimize: 'speed' });
-  private compiler = (Function('_', 'return 0, ' + this.parserCode)(helpers) as unknown) as peg.Parser;
+  private compiler = createParser();
 
   compile(code: string) {
-    return this.compiler.parse(code);
+    const nodes = this.compiler.parse(code);
+    const context = new Context();
+
+    this.resolveIdentifiers(nodes, context);
+    this.findLabelLocations(nodes, context);
+    return this.transform(nodes, context);
+  }
+
+  resolveIdentifiers(nodes: Node[], context: Context) {}
+
+  transform(nodes: Node[], context: Context) {}
+
+  findLabelLocations(nodes: Node[], context: Context) {}
+
+  reduce(nodes: Node[]) {
+    return nodes.reduce((stream, node) => stream.concat(node.bytes), []);
   }
 }

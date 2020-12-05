@@ -4,13 +4,13 @@ equal = "="
 zero  = "0" { return 0 }
 digit  = [0-9]
 digit_19 = [1-9]
-up_to_16 = n:digit { return parseInt(n) } / [1] [0-6] { return parseInt(text()) }
+up_to_16 = n:digit { return _.parseInt(n) } / [1] [0-6] { return _.parseInt(text()) }
 hex = [0-9a-f]i
 hex32 = value:(hex hex space hex hex space hex hex space hex hex) { return text().split(' ').map(_.parseHex) }
 decimal = digit_19 digit* { return parseInt(text()) }
 number = zero / decimal
 int32 = digit_19 digit? digit? digit? digit? digit? digit? digit? { return _.toInt32(_.parseInt(text())) }
-byte = "0x" value:(hex hex) { return parseInt(text(), 16) }
+byte = "0x" value:(hex hex) { return _.parseInt(text(), 16) }
 byte32 = "0x" hex32
 false = "false" { return 0; }
 true  = "true"  { return 1;  }
@@ -25,11 +25,10 @@ string = quote chars:[^']* quote { return chars.map(s => s.charCodeAt(0)).concat
 value_separator = ws? "," ws { return skip() }
 variable = "$" name:(alpha alphaOrNumber*) { return _.getOrCreateVarName(name[0] + name[1].join('')); }
 variableReference = "$" name:(alpha alphaOrNumber*) { return _.getVarName(name[0] + name[1].join('')); }
-pin = "pin " up_to_16 { return parseInt(text().replace('pin ', '')) }
+pin = "pin " up_to_16 { return _.parseInt(text().replace('pin ', '')) }
 pinMode = mode:("input"/"output"/"open drain"/"input pull-up"/"tx"/"rx") { return text() }
 
-statement = label
-/*
+statement =
   label / i:instruction instructionEnd { return i } / condition
 
 label = "@" label:(alpha (alpha/digit)* newline?) { return _.createNode('label', text().trim()) }
@@ -130,4 +129,3 @@ comparator = c:(gt) { return c }
 
 gt =
   "gt" target:variable value_separator a:variable value_separator b:variable { return _.opcode(["if", target, a, b]) }
-*/

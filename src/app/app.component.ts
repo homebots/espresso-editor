@@ -1,6 +1,6 @@
 import { ChangeDetector, ChangeDetectorRef, Child, Component, Inject, OnInit } from '@homebots/elements';
 import { Compiler } from '../code-compiler/compiler';
-import { CodeEditorComponent, EditorError } from '../code-editor/code-editor.component';
+import { CodeEditorComponent } from '../code-editor/code-editor.component';
 import template from './app.component.htm';
 
 function debounce(time: number, fn) {

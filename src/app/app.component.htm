@@ -2,6 +2,7 @@
   :root {
     --gray: #374046;
     --primary: #f0db4f;
+    --stripes-color: #f0db4f;
   }
 
   html,
@@ -18,43 +19,100 @@
     background-color: var(--primary);
   }
 
-  .bg-gray {
-    background-color: var(--gray);
+  .border-primary {
+    border-color: var(--primary);
   }
 
   .text-primary {
     color: var(--primary);
   }
+
+  .table tbody tr:nth-child(even) td {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .table th,
+  .table td {
+    vertical-align: top;
+    padding: 0.5rem 1rem;
+    text-align: left;
+  }
+  .table .code {
+    font-family: monospace;
+    white-space: nowrap;
+  }
+
+  .output {
+    max-height: 200px;
+  }
+
+  .page-divider {
+    height: 0.5rem;
+    background-image: linear-gradient(
+      45deg,
+      var(--stripes-color) 12.5%,
+      transparent 12.5%,
+      transparent 50%,
+      var(--stripes-color) 50%,
+      var(--stripes-color) 62.5%,
+      transparent 62.5%,
+      transparent 100%
+    );
+    background-size: 5.66px 5.66px;
+  }
 </style>
-<section class="flex h-full px-2">
-  <nav class="flex-none p-4 w-1/6">
-    <button
-      (click)="this.onRun()"
-      class="bg-primary text-gray-800 hover:text-black text-left px-3 py-2 rounded-md text-sm font-medium w-full block"
-    >
-      Run
-    </button>
-    <button
+<section class="flex h-full px-2 text-white">
+  <aside class="flex-none p-4 w-1/4 shadow-lg">
+    <div class="text-right">
+      <button
+        (click)="this.onRun()"
+        class="bg-primary text-gray-800 hover:text-black text-left px-3 py-2 rounded-md text-sm font-medium"
+      >
+        Run
+      </button>
+    </div>
+    <!-- <button
       class="text-gray-300 hover:bg-gray-700 hover:text-white text-left px-3 py-2 rounded-md text-sm font-medium w-full block"
     >
       Docs
-    </button>
-  </nav>
+    </button> -->
+    <hr class="border-0 border-solid border-t-2 border-primary my-4 opacity-50" />
+    <h2 class="text-lg mb-3">Instructions:</h2>
+    <table class="table border-collapse table-fixed">
+      <thead>
+        <tr>
+          <th class="bg-gray-700">Code</th>
+          <th class="bg-gray-700">Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="code">@label</td>
+          <td>Creates a label for code jumps.</td>
+        </tr>
+      </tbody>
+    </table>
+  </aside>
 
   <main class="flex flex-col flex-grow items-start">
-    <app-code-editor class="w-full" (change)="this.onCodeChange($event)"></app-code-editor>
-    <div
-      [innerHTML]="this.errorMessage"
-      [class.hidden]="!this.errorMessage"
-      class="bg-primary text-gray-800 px-3 py-2 text-sm font-medium w-full"
-    ></div>
+    <app-code-editor class="flex-1 overflow-y-auto" (change)="this.onCodeChange($event)"></app-code-editor>
+
+    <div class="flex-auto w-full output flex flex-col">
+      <div class="relative">
+        <div
+          [innerHTML]="this.errorMessage"
+          [class.hidden]="!this.errorMessage"
+          class="bg-primary text-gray-800 px-3 py-2 text-sm font-medium w-full absolute top-0 left-0 right-0"
+        ></div>
+      </div>
+      <div class="page-divider flex-none"></div>
+      <h2 class="mb-2 p-2 flex-none bg-gray-800">Output program:</h2>
+      <textarea
+        class="bg-transparent flex-1 resize-none font-mono block w-full"
+        (click)="$event.target.select()"
+        [value]="this.outputJson"
+        readonly
+      ></textarea>
+    </div>
   </main>
-  <aside class="h-full text-gray-100 p-4 font-mono content-start w-1/4 flex-none">
-    <textarea
-      class="w-full h-full bg-transparent resize-none"
-      (click)="$event.target.select()"
-      [value]="this.outputJson"
-      readonly
-    ></textarea>
-  </aside>
 </section>
