@@ -2,6 +2,7 @@ import { ChangeDetector, ChangeDetectorRef, Child, Component, Inject, OnInit } f
 import { Compiler } from '../code-compiler/compiler';
 import { CodeEditorComponent } from '../code-editor/code-editor.component';
 import template from './app.component.htm';
+import { PersistentToggle } from './persistent-toggle';
 
 function debounce(time: number, fn) {
   let timer;
@@ -13,7 +14,6 @@ function debounce(time: number, fn) {
 
 @Component({
   tag: 'app-root',
-  shadowDom: false,
   template,
 })
 export class AppComponent extends HTMLElement implements OnInit {
@@ -25,27 +25,31 @@ export class AppComponent extends HTMLElement implements OnInit {
 
   output: number[] = [];
   errorMessage = '';
+  basicMode = new PersistentToggle('mode');
+  sidebar = new PersistentToggle('sidebar');
 
   get outputJson() {
-    return this.output ? JSON.stringify(this.output, null, 2) : '';
+    return this.output ? JSON.stringify(this.output) : '';
   }
 
   compile(code: string) {
     try {
-      this.output = this.compiler.compile(code);
+      this.output = this.compiler.compile(code + '\n');
     } catch (error) {
       if (error.location) {
         this.errorMessage = 'Line ' + error.location.start.line + ': ' + error.message;
       } else {
         this.errorMessage = String(error);
       }
+
+      console.error(error);
     }
 
     this.cd.markAsDirtyAndCheck();
   }
 
   onInit() {
-    this.connect();
+    this.connectWebSocket();
     this.compile = debounce(200, this.compile);
   }
 
@@ -68,11 +72,11 @@ export class AppComponent extends HTMLElement implements OnInit {
     this.socket.send(message);
   }
 
-  connect() {
+  connectWebSocket() {
     const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
     this.socket = new WebSocket(`${protocol}//hub.homebots.io/hub/display`);
     this.socket.onmessage = ({ data }) => console.log(data);
     this.socket.onopen = () => this.socket.send('text');
-    this.socket.onclose = () => setTimeout(() => this.connect(), 3000);
+    this.socket.onclose = () => setTimeout(() => this.connectWebSocket(), 3000);
   }
 }

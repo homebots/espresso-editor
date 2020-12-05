@@ -39,6 +39,7 @@
   }
   .table tbody td:first-child {
     font-family: monospace;
+    white-space: nowrap;
   }
   .table hr {
     margin: 0.5rem 0;
@@ -65,15 +66,44 @@
     );
     background-size: 5.66px 5.66px;
   }
+
+  .mode-basic .advanced,
+  .mode-advanced .basic {
+    display: none;
+  }
+
+  .collapsible:not(.collapsed) > .collapsed,
+  .collapsible.collapsed > .expanded {
+    display: none;
+  }
+
+  aside:not(.collapsed) {
+    width: 30%;
+  }
 </style>
-<section class="flex h-full px-2 text-gray-400">
-  <aside class="flex-none p-4 w-1/4 shadow-lg">
-    <div class="text-right">
-      <!-- <button
-        class="text-gray-300 hover:bg-gray-700 hover:text-white text-left px-3 py-2 rounded-md text-sm font-medium"
-      >
-        Reset
-      </button> -->
+<section
+  class="flex h-full text-gray-400"
+  [class.mode-basic]="this.basicMode.enabled"
+  [class.mode-advanced]="!this.basicMode.enabled"
+>
+  <aside
+    class="flex-none p-4 shadow-lg overflow-y-auto collapsible bg-gray-900"
+    [class.collapsed]="!this.sidebar.enabled"
+  >
+    <button
+      class="text-gray-300 hover:bg-gray-700 hover:text-white text-left px-3 py-2 rounded-md text-sm font-medium"
+      (click)="this.sidebar.toggle()"
+    >
+      <span class="transform block" [class.rotate-180]="!this.sidebar.enabled">&laquo;</span>
+    </button>
+
+    <div class="flex justify-between expanded">
+      <x-binary-toggle
+        (toggle)="this.basicMode.toggle($event.detail)"
+        [value]="this.basicMode.enabled"
+        [labelon]="'Basic'"
+        [labeloff]="'Advanced'"
+      ></x-binary-toggle>
       <button
         (click)="this.onRun()"
         class="bg-primary text-gray-800 hover:text-black text-left px-3 py-2 rounded-md text-sm font-medium"
@@ -81,41 +111,137 @@
         Run
       </button>
     </div>
-    <hr class="border-0 border-solid border-t-2 border-primary my-4 opacity-50" />
-    <h2 class="text-lg mb-3">Instructions:</h2>
-    <table class="table border-collapse w-full">
-      <thead>
-        <tr>
-          <th class="bg-gray-700">Instruction</th>
-          <th class="bg-gray-700">Description</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="code">@label, @foo</td>
-          <td>Creates a marker for code jumps.</td>
-        </tr>
-        <tr>
-          <td class="code">noop</td>
-          <td>Do nothing.</td>
-        </tr>
-        <tr>
-          <td class="code">exit</td>
-          <td>Stop program execution.</td>
-        </tr>
-        <tr>
-          <td class="code">
-            print system info
-            <hr />
-            sysinfo
-          </td>
-          <td>Stop program execution.</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="expanded">
+      <hr class="border-0 border-solid border-t-2 border-primary my-4 opacity-50" />
+      <h2 class="text-lg mb-3 hidden">Instructions:</h2>
+
+      <table class="table border-collapse mb-8 w-full">
+        <thead>
+          <tr>
+            <th class="border-solid border-gray-700 border-0 border-b text-lg" colspan="2">Types</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>$identifier</td>
+            <td>Variables that hold either 1 or 4 bytes (integer)</td>
+          </tr>
+          <tr>
+            <td>@2</td>
+            <td>Reference to hardware pin</td>
+          </tr>
+          <tr>
+            <td>number</td>
+            <td>123, 345, ...</td>
+          </tr>
+          <tr>
+            <td>byte</td>
+            <td>0x00..0xff</td>
+          </tr>
+          <tr>
+            <td>byte32</td>
+            <td>0x00000000..0xffffffff</td>
+          </tr>
+          <tr>
+            <td>'alice'</td>
+            <td>string (char sequence)</td>
+          </tr>
+        </tbody>
+      </table>
+      <table class="table border-collapse mb-8 w-full">
+        <thead>
+          <tr>
+            <th class="border-solid border-gray-700 border-0 border-b text-lg" colspan="2">Operators</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>$foo := 123</td>
+            <td>Assign a number to a variable.</td>
+          </tr>
+          <tr>
+            <td>$foo := 0xff</td>
+            <td>Assign a byte to a variable.</td>
+          </tr>
+          <tr>
+            <td>$foo := $bar</td>
+            <td>Copy on variable to another.</td>
+          </tr>
+          <tr>
+            <td>
+              <span class="basic">invert $bar</span>
+              <span class="advanced">$bar := !$bar</span>
+            </td>
+            <td>Invert the value of a variable.</td>
+          </tr>
+        </tbody>
+      </table>
+      <table class="table border-collapse mb-8 w-full">
+        <thead>
+          <tr>
+            <th class="border-solid border-gray-700 border-0 border-b text-lg" colspan="2">Instruction</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>@label, @foo</td>
+            <td>Creates a marker for code jumps.</td>
+          </tr>
+          <tr>
+            <td>noop</td>
+            <td>Do nothing.</td>
+          </tr>
+          <tr>
+            <td>exit</td>
+            <td>Stop program execution.</td>
+          </tr>
+          <tr>
+            <td>
+              <span class="basic">print system info</span>
+              <span class="advanced">sysinfo</span>
+            </td>
+            <td>Print system details (chip ID, free memory...).</td>
+          </tr>
+          <tr>
+            <td>dump</td>
+            <td>Stop program execution.</td>
+          </tr>
+          <tr>
+            <td>yield</td>
+            <td>Give the system some time to execute its own code.</td>
+          </tr>
+          <tr>
+            <td>restart</td>
+            <td>Restarts the system.</td>
+          </tr>
+          <tr>
+            <td>
+              enable logs
+              <hr />
+              disable logs
+            </td>
+            <td>Toggle debug messages via UART.</td>
+          </tr>
+          <tr>
+            <td>
+              <span class="basic">write $foo to pin 1</span>
+              <span class="advanced">@1 = $foo</span>
+            </td>
+            <td>Copy the value of a variable to a pin.</td>
+          </tr>
+          <tr>
+            <td>
+              <span class="basic">read pin 1 into $foo</span>
+              <span class="advanced">$foo = @1</span>
+            </td>
+            <td>Set the value from variable to a pin.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </aside>
 
-  <main class="flex flex-col flex-grow items-start">
+  <main class="flex flex-col flex-grow items-start w-2/3">
     <app-code-editor class="flex-1 overflow-y-auto" (change)="this.onCodeChange($event)"></app-code-editor>
 
     <div class="flex-auto w-full output flex flex-col">

@@ -1,38 +1,44 @@
 import { Injectable } from '@homebots/elements';
+import { flatten } from './helpers';
 import { createParser } from './parser';
 import { Node } from './tokens';
-
-class Context {
-  identifiers = new Map();
-  labelPositions = new Map();
-  stream = [];
-}
+import { AssignLabelAddressVisitor, LocateLabelVisitor, ResolveReferenceVisitor, Visitor } from './visitors';
 
 @Injectable()
 export class Compiler {
   private compiler = createParser(this);
 
-  compile(code: string) {
-    const nodes = this.compiler.parse(code);
-    // const context = new Context();
-    // this.resolveIdentifiers(nodes, context);
-    // this.findLabelLocations(nodes, context);
-    return nodes;
-  }
+  visitors: Visitor[] = [new ResolveReferenceVisitor(), new LocateLabelVisitor(), new AssignLabelAddressVisitor()];
 
-  digest(nodes: Node[]) {
-    return this.reduce(nodes.filter(Boolean));
-  }
+  compile(code: string): number[] {
+    const nodes = flatten(this.compiler.parse(code) as Node[]);
+    const context = { nodes };
 
-  // resolveIdentifiers(nodes: Node[], context: Context) {}
+    for (const visitor of this.visitors) {
+      let cursor = 0;
+      // debugger;
 
-  // findLabelLocations(nodes: Node[], context: Context) {}
+      while (cursor < nodes.length) {
+        const newNodes = visitor.visit(nodes[cursor], cursor, context);
+        if (newNodes === null) {
+          nodes.splice(cursor, 1);
+          continue;
+        }
 
-  // transform(nodes: Node[], _: Context) {
-  //   return nodes;
-  // }
+        if (Array.isArray(newNodes)) {
+          nodes.splice(cursor, 1, ...newNodes);
+          cursor += newNodes.length;
+          continue;
+        }
 
-  reduce(nodes: Node[]) {
-    return nodes.reduce((stream, node) => stream.concat(node.bytes), []);
+        if (newNodes !== nodes[cursor]) {
+          nodes[cursor] = newNodes;
+        }
+
+        cursor++;
+      }
+    }
+
+    return nodes.filter((node) => node !== null).reduce((stream, node) => stream.concat(node.bytes), []);
   }
 }

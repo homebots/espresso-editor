@@ -8,7 +8,6 @@ export interface EditorError {
 
 @Component({
   tag: 'app-code-editor',
-  shadowDom: false,
   styles,
 })
 export class CodeEditorComponent extends HTMLElement {

@@ -1,3 +1,17 @@
+export const pinModes = {
+  input: 0,
+  output: 1,
+  'open drain': 3,
+  'input pull-up': 4,
+};
+
+export const ioTypes = {
+  0: 0,
+  1: 3,
+  2: 0,
+  3: 3,
+};
+
 export const c_halt = 0xfe; // -
 export const c_sysinfo = 0xfd; // -
 export const c_restart = 0xfc; // -
@@ -30,6 +44,7 @@ export const c_sub = 0x17; // uint8 slot, uint8 slot
 export const c_mul = 0x18; // uint8 slot, uint8 slot
 export const c_div = 0x19; // uint8 slot, uint8 slot
 export const c_mod = 0x1a; // uint8 slot, uint8 slot
+export const c_copy = 0x1b; // uint8 dest, uint8 src
 export const c_iowrite = 0x31; // uint8 pin, uint8 slot
 export const c_ioread = 0x32; // uint8 slot, uint8 pin
 export const c_iomode = 0x35; // uint8 pin, uint8 slot
