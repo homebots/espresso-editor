@@ -1,4 +1,4 @@
-import { Component, DomEventEmitter, EventEmitter, Input, Output } from '@homebots/elements';
+import { Component, DomEventEmitter, Input } from '@homebots/elements';
 import { PersistentToggle } from './persistent-toggle';
 
 const template = `

@@ -3,10 +3,12 @@
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
-  "scripts": {},
+  "scripts": {
+    "build": "parcel build src/index.html"
+  },
   "license": "MIT",
   "dependencies": {
-    "@homebots/elements": "file:../elements",
+    "@homebots/elements": "^0.8.0",
     "pegjs": "^0.10.0"
   },
   "devDependencies": {

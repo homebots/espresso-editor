@@ -66,7 +66,7 @@ export class LocateLabelVisitor implements Visitor {
 }
 
 export class AssignLabelAddressVisitor implements Visitor {
-  visit(node: Node, index: number, context: any): Node | null {
+  visit(node: Node, _: number, context: any): Node | null {
     if (node instanceof LabelReferenceNode) {
       node.address = toInt32(this.calculateAddress(node, context));
       return null;
