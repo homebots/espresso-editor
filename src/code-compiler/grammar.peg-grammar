@@ -144,18 +144,35 @@ print =
   "print" spaces string:string { return new T.PrintNode({ string }) }
 
 unary_operation =
-  not
+  not / increment / decrement
 
 not =
   "invert" spaces variable:variable_reference { return [variable, new T.NotNode({ variable })] } /
-  "!!" variable:variable_reference { return [variable, new T.NotNode({ variable })] }
-  // variable:variable_reference spaces assign_equal spaces "!" variable_reference { return [variable, new T.NotNode({ variable })] }
+  "!!" variable:variable_reference { return [variable, new T.NotNode({ variable })] } /
+  "!!" pin:pin {
+    const variable = new T.CreateReference('io');
+    return [
+      variable,
+      new T.IoReadNode({ variable, pin }),
+      new T.NotNode({ variable }),
+      new T.IoWriteNode({ variable, pin })
+    ]
+  }
+
+increment =
+  "++" variable:variable_reference { return [variable, new T.IncrementNode({ variable })] }
+
+decrement =
+  "--" variable:variable_reference { return [variable, new T.DecrementNode({ variable })] }
 
 jump =
-  jumpTo
+  jump_if / jump_to
 
-jumpTo =
+jump_to =
   "jump to" spaces label:label_reference { return [label, new T.JumpNode({ label })] }
+
+jump_if =
+  "jump if" spaces variable:variable_reference spaces "to" spaces label:label_reference { return [variable, label, new T.JumpIfNode({ label, variable })] }
 
 io =
   io_mode / io_type / io_only_outputs
@@ -168,10 +185,13 @@ pin_mode =
 
 io_mode =
   "io mode" spaces pin:pin spaces mode:pin_mode {
-
-    const variable = new T.CreateReference('iomode');
+    const variable = new T.CreateReference('io');
     const value = ["input", "output", "open drain", "pull-up-input"].indexOf(mode);
-    return [variable, new T.PushByteNode({ variable, value }), new T.IoModeNode({ variable, pin })]
+    return [
+      variable,
+      new T.PushByteNode({ variable, value }),
+      new T.IoModeNode({ variable, pin })
+    ]
   }
 
 pin_type =
@@ -180,8 +200,7 @@ pin_type =
 io_type =
   "io type" spaces pin:pin spaces type:pin_type
   {
-    const variable = new T.CreateReference('iotype');
-
+    const variable = new T.CreateReference('io');
     return [
       variable,
       new T.PushByteNode({ variable, value: T.IoTypeNode.ofType(pin, type) }),

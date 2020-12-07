@@ -1,16 +1,19 @@
 import {
   c_copy,
   c_debug,
+  c_dec,
   c_delay,
   c_delay_v,
   c_dump,
   c_halt,
+  c_inc,
   c_ioallout,
   c_iomode,
   c_ioread,
   c_iotype,
   c_iowrite,
   c_jump,
+  c_jumpif,
   c_memget,
   c_memset,
   c_noop,
@@ -242,6 +245,24 @@ export class NotNode extends Node {
   }
 }
 
+export class IncrementNode extends Node {
+  readonly length = 2;
+  variable: Reference;
+
+  get bytes() {
+    return [c_inc, this.variable.reference];
+  }
+}
+
+export class DecrementNode extends Node {
+  readonly length = 2;
+  variable: Reference;
+
+  get bytes() {
+    return [c_dec, this.variable.reference];
+  }
+}
+
 export class LabelReferenceNode extends Node {
   label: string;
   address: int32;
@@ -257,6 +278,20 @@ export class JumpNode extends Node {
     }
 
     return [c_jump, ...this.label.address];
+  }
+}
+
+export class JumpIfNode extends Node {
+  readonly length = 6;
+  label: LabelReferenceNode;
+  variable: Reference;
+
+  get bytes() {
+    if (!this.label.address) {
+      throw new ReferenceError(`Undefined address for ${this.label.label}`);
+    }
+
+    return [c_jumpif, this.variable.reference, ...this.label.address];
   }
 }
 

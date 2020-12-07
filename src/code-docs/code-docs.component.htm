@@ -113,9 +113,17 @@
         <td>Copy one variable into another.</td>
       </tr>
       <tr>
+        <td>++$foo</td>
+        <td>Increment variable by 1.</td>
+      </tr>
+      <tr>
+        <td>--$foo</td>
+        <td>Decrement variable by 1.</td>
+      </tr>
+      <tr>
         <td>
           <span class="basic">invert $bar</span>
-          <span class="advanced">$bar = !$bar</span>
+          <span class="advanced">!!$bar</span>
         </td>
         <td>Invert the value of a variable.</td>
       </tr>
@@ -169,7 +177,11 @@
       </tr>
       <tr>
         <td>jump to @label</td>
-        <td>Jumps to a point of the program, marked by a label.</td>
+        <td>Jumps to a point of the program marked by a label.</td>
+      </tr>
+      <tr>
+        <td>jump to @label if $foo</td>
+        <td>Jumps to a point of the program marked by a label if the value of a variable is not zero.</td>
       </tr>
       <tr>
         <td>wait 10</td>
