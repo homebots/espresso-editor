@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@homebots/elements';
+import { Component, DomEventEmitter, EventEmitter, Input, Output } from '@homebots/elements';
 import { PersistentToggle } from './persistent-toggle';
 
 const template = `
@@ -24,8 +24,7 @@ const template = `
 })
 export class BinaryToggleComponent extends HTMLElement {
   toggleState: PersistentToggle;
-
-  @Output('change') onToggle: EventEmitter<boolean>;
+  change = new DomEventEmitter<boolean>(this, 'change');
 
   @Input() labelon: string = '';
   @Input() labeloff: string = '';
@@ -36,7 +35,7 @@ export class BinaryToggleComponent extends HTMLElement {
 
   @Input() set name(name: string) {
     this.toggleState = new PersistentToggle(name);
-    this.onToggle.emit(this.toggleState.enabled);
+    this.change.emit(this.toggleState.enabled);
   }
 
   get enabled() {
@@ -45,6 +44,6 @@ export class BinaryToggleComponent extends HTMLElement {
 
   onToggleClick(value: boolean) {
     this.toggleState.toggle(value);
-    this.onToggle.emit(this.toggleState.enabled);
+    this.change.emit(this.toggleState.enabled);
   }
 }

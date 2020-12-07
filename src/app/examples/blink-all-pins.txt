@@ -1,0 +1,11 @@
+var $foo
+
+disable logs
+io only outputs
+
+@repeat
+  $foo = **0x60000328
+  !!$foo
+  **0x60000328 = $foo
+  wait 1000
+  jump to @repeater

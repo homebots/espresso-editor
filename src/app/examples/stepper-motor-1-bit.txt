@@ -1,0 +1,33 @@
+var $on
+var $off
+var $interval
+
+disable logs
+io only outputs
+
+$on =  0x01
+$off = 0x00
+$interval = 5
+
+// cycle: gpio0 - tx - gpio2 - rx
+
+@step
+
+  @0 = $on
+  wait $interval
+
+  @1 = $on
+  @0 = $off
+  wait $interval
+
+  @2 = $on
+  @1 = $off
+  wait $interval
+
+  @3 = $on
+  @2 = $off
+  wait $interval
+
+  @3 = $off
+
+jump to @step

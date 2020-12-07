@@ -24,10 +24,10 @@
     display: none;
   }
   table code {
-    display: block;
     background-color: rgba(255, 255, 255, 0.1);
     padding: 0.25rem 0.75rem;
     border-radius: 0.25rem;
+    font-size: inherit;
   }
 </style>
 
@@ -76,12 +76,16 @@
         <td>String (byte sequence)</td>
       </tr>
       <tr>
+        <td>**12345678</td>
+        <td>Memory access by address</td>
+      </tr>
+      <tr>
         <td>@foo</td>
         <td>Label</td>
       </tr>
       <tr>
-        <td>**12345678</td>
-        <td>Memory access by address</td>
+        <td>// bla bla bla</td>
+        <td>A comment</td>
       </tr>
     </tbody>
   </table>
@@ -92,6 +96,10 @@
       </tr>
     </thead>
     <tbody>
+      <tr>
+        <td>var $foo</td>
+        <td>Declare a variable.</td>
+      </tr>
       <tr>
         <td>$foo = 123</td>
         <td>Assign a number to a variable.</td>
@@ -148,16 +156,32 @@
         <td>Restarts the system.</td>
       </tr>
       <tr>
-        <td>restart</td>
-        <td>Restarts the system.</td>
-      </tr>
-      <tr>
         <td>
           enable logs
           <hr />
           disable logs
         </td>
         <td>Toggle debug messages via UART.</td>
+      </tr>
+      <tr>
+        <td>raw "00 11 12 ff"</td>
+        <td>Insert raw bytes into the program.</td>
+      </tr>
+      <tr>
+        <td>jump to @label</td>
+        <td>Jumps to a point of the program, marked by a label.</td>
+      </tr>
+      <tr>
+        <td>wait 10</td>
+        <td>Wait for a given time (milliseconds).</td>
+      </tr>
+      <tr>
+        <td>wait $foo</td>
+        <td>Wait for a given time assigned to a variable (milliseconds).</td>
+      </tr>
+      <tr>
+        <td>print 'hello!'</td>
+        <td>Print a string to the output.</td>
       </tr>
       <tr>
         <td>
@@ -171,25 +195,25 @@
           <span class="basic">read pin 1 into $foo</span>
           <span class="advanced">$foo = @1</span>
         </td>
-        <td>Set the value from variable to a pin.</td>
+        <td>Copy the value of a pin to a variable.</td>
       </tr>
       <tr>
         <td>
           <span class="basic">io type of pin 1 to tx</span>
           <span class="advanced">io type @1 tx</span>
         </td>
-        <td>Set the operation mode of a pin. Type can be one of "tx", "rx" or "io"</td>
+        <td>Set the type of a pin. Type can be one of "tx", "rx" or "io"</td>
       </tr>
       <tr>
         <td>
           <span class="basic">io mode of pin 1 to input</span>
           <span class="advanced">io mode @1 input</span>
         </td>
-        <td>Set the data direction of a pin. Mode can be one of "input", "output" or "open-drain"</td>
+        <td>Set the data flow of a pin. One of "input", "output", "pull-up-input" or "open-drain"</td>
       </tr>
       <tr>
-        <td>io full-output</td>
-        <td>Set all pins to GPIO mode. Should be used after logs are disabled.</td>
+        <td>io only outputs</td>
+        <td>Set all pins to IO mode. Should be used after <code>disable logs</code></td>
       </tr>
     </tbody>
   </table>

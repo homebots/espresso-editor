@@ -18,6 +18,7 @@
   "assetTypesToStringify": [
     "htm",
     "css",
+    "txt",
     "peg-grammar"
   ]
 }

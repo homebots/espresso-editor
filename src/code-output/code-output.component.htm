@@ -1,15 +1,15 @@
 <div class="flex flex-col h-full">
-  <h2 class="mb-2 p-2 flex-none bg-gray-800 text-gray-600 flex justify-between">
+  <h2 class="p-2 flex-none bg-gray-800 text-gray-600 flex justify-between">
     <div class="py-1">Output program (<span [innerText]="this.length"></span> bytes)</div>
     <x-binary-toggle
       [name]="'output-mode'"
-      (change)="this.hexadecimal = $event.detail"
+      (change)="this.onToggle($event)"
       [labelon]="'Hexadecimal'"
       [labeloff]="'Decimal'"
     ></x-binary-toggle>
   </h2>
   <textarea
-    class="bg-transparent flex-1 resize-none font-mono block w-full"
+    class="bg-transparent flex-1 resize-none font-mono block w-full p-2"
     (click)="$event.target.select()"
     [value]="this.json"
     readonly

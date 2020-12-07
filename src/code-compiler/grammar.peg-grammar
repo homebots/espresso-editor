@@ -49,7 +49,7 @@ eval_int32 =
 }
 
 statement =
-  label / comment / i:instruction instruction_terminator { return i } / i:instruction spaces? comment { return i } / eval
+  label / comment / i:instruction instruction_terminator { return i } / i:instruction spaces? comment { return i }
 
 comment =
   "//" (space? ([^\n])*)? newline { return new T.SkipNode() }
@@ -119,7 +119,6 @@ memory_assign_variable =
   "**" address:byte32 spaces "=" spaces variable:variable_reference { return [variable, new T.MemoryWriteNode({ variable, address })] } /
   "**" address:eval spaces assign_equal spaces variable:variable_reference { return [variable, new T.MemoryWriteNode({ variable, address: address.value })] }
 
-
 variable_assign_int =
   variable:variable_reference spaces assign_equal spaces value:int32 { return [variable, new T.PushIntegerNode({ variable, value })] }
 
@@ -138,9 +137,8 @@ pin_assign_variable =
   "write" spaces variable:variable_reference spaces "to" spaces pin:pin { return [variable, new T.IoWriteNode({ variable, pin })] }
 
 delay =
-  "wait" spaces delay:int32 { return new T.DelayNode({ delay }) } /
-  "wait" spaces variable:variable_reference { return [variable, new T.DelayVariableNode({ variable })] }
-
+  "wait" spaces variable:variable_reference { return [variable, new T.DelayVariableNode({ variable })] } /
+  "wait" spaces delay:int32 { return new T.DelayNode({ delay }) }
 
 print =
   "print" spaces string:string { return new T.PrintNode({ string }) }
@@ -150,7 +148,8 @@ unary_operation =
 
 not =
   "invert" spaces variable:variable_reference { return [variable, new T.NotNode({ variable })] } /
-  variable:variable_reference spaces assign_equal spaces "!" variable_reference { return [variable, new T.NotNode({ variable })] }
+  "!!" variable:variable_reference { return [variable, new T.NotNode({ variable })] }
+  // variable:variable_reference spaces assign_equal spaces "!" variable_reference { return [variable, new T.NotNode({ variable })] }
 
 jump =
   jumpTo
@@ -171,8 +170,8 @@ io_mode =
   "io mode" spaces pin:pin spaces mode:pin_mode {
 
     const variable = new T.CreateReference('iomode');
-    const byte = ["input", "output", "open drain", "pull-up-input"].indexOf(mode);
-    return [variable, new T.PushByteNode({ variable, byte }), new T.IoModeNode({ variable, pin })]
+    const value = ["input", "output", "open drain", "pull-up-input"].indexOf(mode);
+    return [variable, new T.PushByteNode({ variable, value }), new T.IoModeNode({ variable, pin })]
   }
 
 pin_type =
@@ -185,7 +184,7 @@ io_type =
 
     return [
       variable,
-      new T.PushByteNode({ variable, byte: T.IoTypeNode.ofType(pin, type) }),
+      new T.PushByteNode({ variable, value: T.IoTypeNode.ofType(pin, type) }),
       new T.IoTypeNode({ variable, pin })
     ]
   }

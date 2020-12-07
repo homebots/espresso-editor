@@ -70,8 +70,8 @@
         class="bg-primary text-gray-800 hover:text-black text-left px-3 py-2 rounded-md text-sm font-medium"
         (change)="this.onExampleSelect($event)"
       >
+        <option>-- Examples --</option>
         <template *for="'example'" [of]="this.examples">
-          <option>-- Examples --</option>
           <option [value]="example.id" [innerText]="example.title"></option>
         </template>
       </select>
