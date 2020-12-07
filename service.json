@@ -1,4 +1,4 @@
 {
-  "type": "nginx",
+  "type": "node",
   "domain": "editor.homebots.io"
 }
