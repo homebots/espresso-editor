@@ -5,6 +5,10 @@ export class PersistentToggle {
     return this.value;
   }
 
+  get disabled() {
+    return !this.enabled;
+  }
+
   constructor(private name: string) {
     this.value = localStorage.getItem(this.name) == 'true';
   }

@@ -1,17 +1,3 @@
-export const pinModes = {
-  input: 0,
-  output: 1,
-  'open drain': 3,
-  'input pull-up': 4,
-};
-
-export const ioTypes = {
-  0: 0,
-  1: 3,
-  2: 0,
-  3: 3,
-};
-
 export const c_halt = 0xfe; // -
 export const c_sysinfo = 0xfd; // -
 export const c_restart = 0xfc; // -
@@ -45,10 +31,12 @@ export const c_mul = 0x18; // uint8 slot, uint8 slot
 export const c_div = 0x19; // uint8 slot, uint8 slot
 export const c_mod = 0x1a; // uint8 slot, uint8 slot
 export const c_copy = 0x1b; // uint8 dest, uint8 src
+export const c_delay_v = 0x1c; // uint8 slot
 export const c_iowrite = 0x31; // uint8 pin, uint8 slot
 export const c_ioread = 0x32; // uint8 slot, uint8 pin
 export const c_iomode = 0x35; // uint8 pin, uint8 slot
 export const c_iotype = 0x36; // uint8 pin, uint8 slot
+export const c_ioallout = 0x37; // -
 export const c_wificonnect = 0x3a; // uint8 pin, uint8 slot
 export const c_wifidisconnect = 0x3b; // uint8 pin, uint8 slot
 export const c_wifistatus = 0x3c; // uint8 pin, uint8 slot

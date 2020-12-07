@@ -7,7 +7,7 @@ export interface EditorError {
 }
 
 @Component({
-  tag: 'app-code-editor',
+  tag: 'code-editor',
   styles,
 })
 export class CodeEditorComponent extends HTMLElement {
@@ -17,11 +17,14 @@ export class CodeEditorComponent extends HTMLElement {
   @Input()
   mode: string = 'javascript';
 
-  @Input()
-  errors: EditorError[];
-
   get value(): string {
     return this.editor.getValue();
+  }
+
+  set value(code: string) {
+    if (this.value !== code) {
+      this.editor.setValue(code);
+    }
   }
 
   private editor: any;
@@ -30,25 +33,10 @@ export class CodeEditorComponent extends HTMLElement {
     this.createEditor();
   }
 
-  // private updateErrors() {
-  //   this.errorWidgets.forEach((widget) => this.editor.removeLineWidget(widget));
-  //   this.errorWidgets.length = 0;
-
-  //   if (!this.errors?.length) return;
-
-  //   this.errors.forEach((error) => {
-  //     const message = document.createElement('div');
-  //     message.appendChild(document.createTextNode(error.message));
-  //     this.errorWidgets.push(
-  //       this.editor.addLineWidget(error.line - 1, message, { coverGutter: false, noHScroll: true }),
-  //     );
-  //   });
-  // }
-
   createEditor() {
     this.editor = (self as any).CodeMirror(this, {
       mode: this.mode,
-      theme: 'monokai',
+      theme: 'dracula',
       lineNumbers: true,
       autofocus: true,
       autocorrect: true,

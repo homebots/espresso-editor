@@ -2,13 +2,17 @@ import {
   c_copy,
   c_debug,
   c_delay,
+  c_delay_v,
   c_dump,
   c_halt,
+  c_ioallout,
   c_iomode,
   c_ioread,
   c_iotype,
   c_iowrite,
   c_jump,
+  c_memget,
+  c_memset,
   c_noop,
   c_not,
   c_print,
@@ -152,13 +156,29 @@ export class IoTypeNode extends Node {
   readonly variable: Reference;
   readonly pin: number;
 
+  static pins = {
+    0: { io: 0 },
+    1: { tx: 0, io: 3 },
+    2: { io: 0 },
+    3: { rx: 0, io: 3 },
+  };
+
+  static ofType(pin: number, type: 'io' | 'tx' | 'rx') {
+    const pinTypes = this.pins[pin];
+    if (pinTypes[type] !== undefined) {
+      return pinTypes[type];
+    }
+
+    return 0;
+  }
+
   get bytes() {
     return [c_iotype, this.pin, this.variable.reference];
   }
 }
 
 export class PushIntegerNode extends Node {
-  readonly length = 3;
+  readonly length = 6;
   readonly variable: Reference;
   readonly value: int32;
 
@@ -170,10 +190,10 @@ export class PushIntegerNode extends Node {
 export class PushByteNode extends Node {
   readonly length = 3;
   readonly variable: Reference;
-  readonly byte: number;
+  readonly value: number;
 
   get bytes() {
-    return [c_push_b, this.variable.reference, this.byte];
+    return [c_push_b, this.variable.reference, this.value];
   }
 }
 
@@ -193,6 +213,23 @@ export class DelayNode extends Node {
 
   get bytes() {
     return [c_delay, ...this.delay];
+  }
+}
+
+export class DelayVariableNode extends Node {
+  readonly length = 2;
+  variable: Reference;
+
+  get bytes() {
+    return [c_delay_v, this.variable.reference];
+  }
+}
+
+export class IoAllOutputNode extends Node {
+  readonly length = 1;
+
+  get bytes() {
+    return [c_ioallout];
   }
 }
 
@@ -229,5 +266,42 @@ export class PrintNode extends Node {
 
   get bytes() {
     return [c_print, ...this.string];
+  }
+}
+
+export class ByteNode extends Node {
+  rawBinary: number[];
+
+  get bytes() {
+    return this.rawBinary;
+  }
+
+  // @ts-ignore
+  get length() {
+    return this.rawBinary.length;
+  }
+
+  set length(_) {}
+}
+
+export class MemoryReadNode extends Node {
+  variable: Reference;
+  address: int32;
+
+  readonly length = 6;
+
+  get bytes() {
+    return [c_memget, this.variable.reference, ...this.address];
+  }
+}
+
+export class MemoryWriteNode extends Node {
+  variable: Reference;
+  address: int32;
+
+  readonly length = 6;
+
+  get bytes() {
+    return [c_memset, ...this.address, this.variable.reference];
   }
 }

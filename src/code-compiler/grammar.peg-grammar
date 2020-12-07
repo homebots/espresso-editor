@@ -1,30 +1,16 @@
-{
-  const MAX_INTEGER = 4294967295;
-
-  function toInt32(number) {
-    if (number > MAX_INTEGER) {
-      throw new SyntaxError('number is too large');
-    }
-
-    return Array.from(new Uint8Array(new Uint32Array([number]).buffer))
-  }
-}
-
 program = all:(i:statement ws?)* { return all.map(i => i[0])  }
 
 equal = "="
-assignEqual = ":="
-zero  = "0" { return 0 }
+assign_equal = "="
 digit  = [0-9]
 digit_19 = [1-9]
 up_to_16 = n:digit { return parseInt(n) } / [1] [0-6] { return parseInt(text()) }
 hex = [0-9a-f]i
-// hex32 = value:(hex hex space hex hex space hex hex space hex hex) { return text().split(' ').map(_.parseHex) }
-decimal = digit_19 digit* { return parseInt(text()) }
-number = zero / decimal
-int32 = digit_19 digit* { return toInt32(parseInt(text())) }
+hex_pair = [0-9a-f]i [0-9a-f]i { return parseInt(text(), 16) }
+byte32 = "0x" hex hex hex hex hex hex hex hex { return _.toInt32(parseInt(text())) }
+integer = digit_19 digit* { return parseInt(text()) }
+int32 = "0" { return _.toInt32(0) } / integer { return _.toInt32(parseInt(text())) }
 byte = "0x" value:(hex hex) { return parseInt(text(), 16) }
-// byte32 = "0x" hex32
 false = "false" { return 0; }
 true  = "true"  { return 1; }
 ws = [ \t\n\r]*
@@ -33,30 +19,52 @@ spaces =  [ ]+
 newline = [\n\r]
 quote = "'"
 alpha = [a-z]i
-alphaOrNumber  = [a-z0-9]i
+alpha_or_number  = [a-z0-9]i
 dash = [_-]
 string = quote chars:[^']* quote { return chars.map(s => String(s).charCodeAt(0)).concat([0]); }
-
-variable = "$" name:(alpha alphaOrNumber*) { return new T.CreateReference(name[0] + name[1].join('')); }
-variableReference = "$" name:(alpha alphaOrNumber*) { return new T.Reference(name[0] + name[1].join('')); }
+variable = "var $" name:(alpha alpha_or_number*) { return new T.CreateReference(name[0] + name[1].join('')); }
+variable_reference = "$" name:(alpha alpha_or_number*) { return new T.Reference(name[0] + name[1].join('')); }
 pin = "pin " up_to_16 { return parseInt(text().replace('pin ', '')) } / "@" pin:up_to_16 { return parseInt(pin) }
-pinMode = mode:("input"/"output"/"open drain"/"input pull-up"/"tx"/"rx") { return text() }
-instructionEnd = spaces? newline / spaces? ";"
+instruction_terminator = spaces? newline / spaces? ";"
+
+eval =
+  eval_int32 / eval_string / eval_byte
+
+eval_string =
+  type:"str" space? "`" code:[^`]* "`" {
+    const v = Function('_', 'return 0,' + code.join(''))(_)
+    return { type, value: String(v).split('').concat([0]) };
+  }
+
+eval_byte =
+  type:"byte" space? "`" code:[^`]* "`" {
+    const v = Function('_', 'return 0,' + code.join(''))(_)
+    return { type, value: [parseInt(v)] };
+  }
+
+eval_int32 =
+  type:"int" space? "`" code:[^`]* "`" {
+    const v = Function('_', 'return 0,' + code.join(''))(_)
+    return { type, value: _.toInt32(parseInt(v)) };
+}
 
 statement =
-  label / comment / i:instruction instructionEnd { return i } / i:instruction spaces? comment { return i }
+  label / comment / i:instruction instruction_terminator { return i } / i:instruction spaces? comment { return i } / eval
 
 comment =
   "//" (space? ([^\n])*)? newline { return new T.SkipNode() }
 
 label =
-  "#" label:(alpha (alpha/digit/dash)*) { return new T.LabelNode({ label: text().trim() }) }
+  "@" label:(alpha (alpha/digit/dash)*) { return new T.LabelNode({ label: text().trim() }) }
 
-labelReference =
-  "#" label:(alpha (alpha/digit/dash)*) { return new T.LabelReferenceNode({ label: text().trim() }) }
+label_reference =
+  "@" label:(alpha (alpha/digit/dash)*) { return new T.LabelReferenceNode({ label: text().trim() }) }
 
 instruction =
-  noop / exit / sysinfo / dump / restart / yield / debug / assignValue / delay / unary_operation / jump / io
+  noop / exit / sysinfo / dump / restart / yield / debug / assign_value / delay / unary_operation / jump / io / literal
+
+literal =
+  "raw" space quote bytes:(v:hex_pair space? { return v })* quote { return new T.ByteNode({ rawBinary: bytes })}
 
 noop =
   "noop" { return new T.NoopNode() }
@@ -79,28 +87,60 @@ yield =
 debug =
   "enable logs" { return new T.DebugNode({ value: 1 }) } / "disable logs" { return new T.DebugNode({ value: 0 }) }
 
-assignValue =
-  variable_assign_int / variable_assign_byte / variable_assign_variable / variable_assign_pin / pin_assign_variable
+assign_value =
+  variable_assign_value / variable_assign_memory / variable_assign_byte / variable_assign_int /
+  variable_assign_variable / variable_assign_pin / pin_assign_variable / memory_assign_variable /
+  variable_create
+
+variable_create =
+  variable:variable {
+    return [ variable, new T.PushByteNode({ variable, value: 0 }) ];
+  }
+
+variable_assign_value =
+  variable:variable_reference spaces assign_equal spaces e:eval {
+    switch (e.type) {
+      case 'str':
+        throw new Error('Assignment to string not supported')
+
+      case 'int':
+        return [ variable, new T.PushIntegerNode({ variable, value: e.value }) ];
+
+      case 'byte':
+        return [ variable, new T.PushByteNode({ variable, value: e.value[0] & 0xff }) ];
+    }
+  }
+
+variable_assign_memory =
+  variable:variable_reference spaces assign_equal spaces "**" address:byte32 { return [variable, new T.MemoryReadNode({ variable, address })] } /
+  variable:variable_reference spaces assign_equal spaces "**" address:eval { return [variable, new T.MemoryReadNode({ variable, address: address.value })] }
+
+memory_assign_variable =
+  "**" address:byte32 spaces "=" spaces variable:variable_reference { return [variable, new T.MemoryWriteNode({ variable, address })] } /
+  "**" address:eval spaces assign_equal spaces variable:variable_reference { return [variable, new T.MemoryWriteNode({ variable, address: address.value })] }
+
 
 variable_assign_int =
-  variable:variable spaces assignEqual spaces value:int32 { return [variable, new T.PushIntegerNode({ variable, value })] }
+  variable:variable_reference spaces assign_equal spaces value:int32 { return [variable, new T.PushIntegerNode({ variable, value })] }
 
 variable_assign_byte =
-  variable:variable spaces assignEqual spaces byte:byte { return [variable, new T.PushByteNode({ variable, byte })] }
+  variable:variable_reference spaces assign_equal spaces value:byte { return [variable, new T.PushByteNode({ variable, value })] }
 
 variable_assign_variable =
-  target:variable spaces assignEqual spaces source:variableReference { return [target, source, new T.CopyNode({ target, source })] }
+  target:variable_reference spaces assign_equal spaces source:variable_reference { return [target, source, new T.CopyNode({ target, source })] }
 
 variable_assign_pin =
-  variable:variable spaces assignEqual spaces pin:pin { return [variable, new T.IoReadNode({ variable, pin })] } /
+  variable:variable_reference spaces assign_equal spaces pin:pin { return [variable, new T.IoReadNode({ variable, pin })] } /
   "read" spaces pin:pin spaces "into" spaces variable:variable { return [variable, new T.IoReadNode({ variable, pin })] }
 
 pin_assign_variable =
-  pin:pin spaces assignEqual spaces variable:variableReference { return [variable, new T.IoWriteNode({ variable, pin })] } /
-  "write" spaces variable:variableReference spaces "to" spaces pin:pin { return [variable, new T.IoWriteNode({ variable, pin })] }
+  pin:pin spaces assign_equal spaces variable:variable_reference { return [variable, new T.IoWriteNode({ variable, pin })] } /
+  "write" spaces variable:variable_reference spaces "to" spaces pin:pin { return [variable, new T.IoWriteNode({ variable, pin })] }
 
 delay =
-  "wait" spaces delay:int32 { return new T.DelayNode({ delay }) }
+  "wait" spaces delay:int32 { return new T.DelayNode({ delay }) } /
+  "wait" spaces variable:variable_reference { return [variable, new T.DelayVariableNode({ variable })] }
+
 
 print =
   "print" spaces string:string { return new T.PrintNode({ string }) }
@@ -109,37 +149,43 @@ unary_operation =
   not
 
 not =
-  "invert" spaces variable:variableReference { return [variable, new T.NotNode({ variable })] } /
-  variable:variableReference spaces assignEqual spaces "!" variableReference { return [variable, new T.NotNode({ variable })] }
+  "invert" spaces variable:variable_reference { return [variable, new T.NotNode({ variable })] } /
+  variable:variable_reference spaces assign_equal spaces "!" variable_reference { return [variable, new T.NotNode({ variable })] }
 
-jump = jumpTo
+jump =
+  jumpTo
 
 jumpTo =
-  "jump to" spaces label:labelReference { return [label, new T.JumpNode({ label })] }
+  "jump to" spaces label:label_reference { return [label, new T.JumpNode({ label })] }
 
-io = iomode / iotype
+io =
+  io_mode / io_type / io_only_outputs
 
-iomode =
-  "io mode" spaces pin:pin spaces variable:variableReference { return [variable, new T.IoModeNode({ variable, pin })] }
+io_only_outputs
+  = "io only outputs" { return new T.IoAllOutputNode() }
 
-iotype =
-  "io type" spaces pin:pin spaces variable:variableReference { return [variable, new T.IoTypeNode({ variable, pin })] }
+pin_mode =
+  mode:("input"/"output"/"open drain"/"pull-up-input") { return text() }
 
-/*
+io_mode =
+  "io mode" spaces pin:pin spaces mode:pin_mode {
 
-jumpIf /
-memget /
-memset /
+    const variable = new T.CreateReference('iomode');
+    const byte = ["input", "output", "open drain", "pull-up-input"].indexOf(mode);
+    return [variable, new T.PushByteNode({ variable, byte }), new T.IoModeNode({ variable, pin })]
+  }
 
-iomode =
-  "set" spaces pin:pin spaces "mode to" spaces mode:pinMode { return _.pinMode(pin, mode) }
+pin_type =
+  "io" / "tx" / "rx"
 
-jumpIf =
-  "if" spaces variable:variableReference spaces "jump to" spaces label:label { return _.jumpIf(variable, label) }
+io_type =
+  "io type" spaces pin:pin spaces type:pin_type
+  {
+    const variable = new T.CreateReference('iotype');
 
-memget =
-  variable:variable spaces "=" spaces "[" address:int32 "]" { return _.opcode([c_memget, variable, ...address]) }
-
-memset =
-  "[" address:int32 "]" spaces "=" spaces variable:variable { return _.opcode([c_memset, ...address, variable]) }
-*/
+    return [
+      variable,
+      new T.PushByteNode({ variable, byte: T.IoTypeNode.ofType(pin, type) }),
+      new T.IoTypeNode({ variable, pin })
+    ]
+  }

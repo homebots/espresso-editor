@@ -1,41 +1,86 @@
 import { ChangeDetector, ChangeDetectorRef, Child, Component, Inject, OnInit } from '@homebots/elements';
 import { Compiler } from '../code-compiler/compiler';
 import { CodeEditorComponent } from '../code-editor/code-editor.component';
+import { FlipToggleComponent } from '../ui/flip-toggle.component';
 import template from './app.component.htm';
-import { PersistentToggle } from './persistent-toggle';
+import examples from './examples/examples';
 
-function debounce(time: number, fn) {
-  let timer;
-  return function (...args: any[]) {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn.apply(this, args), time);
-  };
-}
+// function debounce(time: number, fn) {
+//   let timer;
+//   return function (...args: any[]) {
+//     clearTimeout(timer);
+//     timer = setTimeout(() => fn.apply(this, args), time);
+//   };
+// }
 
 @Component({
   tag: 'app-root',
   template,
 })
 export class AppComponent extends HTMLElement implements OnInit {
-  @Inject(Compiler) compiler: Compiler;
-  @Inject(ChangeDetectorRef) cd: ChangeDetector;
-  @Child('app-code-editor') editor: CodeEditorComponent;
-
   private socket: WebSocket;
 
-  output: number[] = [];
-  errorMessage = '';
-  basicMode = new PersistentToggle('mode');
-  sidebar = new PersistentToggle('sidebar');
+  @Inject(Compiler) compiler: Compiler;
+  @Inject(ChangeDetectorRef) cd: ChangeDetector;
 
-  get outputJson() {
-    return this.output ? JSON.stringify(this.output) : '';
+  @Child('code-editor', true) editor: CodeEditorComponent;
+  @Child('x-flip-toggle') sidebarToggle: FlipToggleComponent;
+
+  get showSidebar() {
+    return this.sidebarToggle && this.sidebarToggle.enabled;
   }
 
-  compile(code: string) {
+  program: number[] = [];
+  errorMessage = '';
+  examples = examples;
+
+  onInit() {
+    this.connectWebSocket();
+  }
+
+  onCodeChange() {
+    const code = this.editor.value.trim();
+
+    if (code) {
+      this.compile(code);
+    }
+  }
+
+  onRun() {
+    if (this.socket.readyState !== this.socket.OPEN || !this.program.length) {
+      return;
+    }
+
+    const message = new Uint8Array(this.program);
+    console.log('Sent', message.length);
+
+    this.socket.send(message);
+  }
+
+  onExampleSelect($event) {
+    const selected = $event.target.value;
+    const example = this.examples.find((item) => item.id === selected);
+
+    if (example) {
+      this.editor.value = example.code;
+    }
+  }
+
+  private connectWebSocket() {
+    const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    this.socket = new WebSocket(`${protocol}//hub.homebots.io/hub/display`);
+    this.socket.onmessage = ({ data }) => console.log(data);
+    this.socket.onopen = () => this.socket.send('text');
+    this.socket.onclose = () => setTimeout(() => this.connectWebSocket(), 3000);
+  }
+
+  private compile(code: string) {
     try {
-      this.output = this.compiler.compile(code + '\n');
+      this.program = this.compiler.compile(code + '\n');
+      this.errorMessage = '';
     } catch (error) {
+      this.program = [];
+
       if (error.location) {
         this.errorMessage = 'Line ' + error.location.start.line + ': ' + error.message;
       } else {
@@ -46,37 +91,5 @@ export class AppComponent extends HTMLElement implements OnInit {
     }
 
     this.cd.markAsDirtyAndCheck();
-  }
-
-  onInit() {
-    this.connectWebSocket();
-    this.compile = debounce(200, this.compile);
-  }
-
-  onCodeChange(event: CustomEvent<string>) {
-    const code = event.detail;
-    this.output = [];
-    this.errorMessage = '';
-
-    if (!code) return;
-
-    this.compile(code);
-  }
-
-  onRun() {
-    if (this.socket.readyState !== this.socket.OPEN || !this.output.length) {
-      return;
-    }
-
-    const message = new Uint8Array(this.output);
-    this.socket.send(message);
-  }
-
-  connectWebSocket() {
-    const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    this.socket = new WebSocket(`${protocol}//hub.homebots.io/hub/display`);
-    this.socket.onmessage = ({ data }) => console.log(data);
-    this.socket.onopen = () => this.socket.send('text');
-    this.socket.onclose = () => setTimeout(() => this.connectWebSocket(), 3000);
   }
 }

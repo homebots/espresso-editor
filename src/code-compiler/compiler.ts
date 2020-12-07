@@ -6,12 +6,15 @@ import { AssignLabelAddressVisitor, LocateLabelVisitor, ResolveReferenceVisitor,
 
 @Injectable()
 export class Compiler {
-  private compiler = createParser(this);
-
-  visitors: Visitor[] = [new ResolveReferenceVisitor(), new LocateLabelVisitor(), new AssignLabelAddressVisitor()];
+  private parser = createParser();
+  private visitors: Visitor[] = [
+    new ResolveReferenceVisitor(),
+    new LocateLabelVisitor(),
+    new AssignLabelAddressVisitor(),
+  ];
 
   compile(code: string): number[] {
-    const nodes = flatten(this.compiler.parse(code) as Node[]);
+    const nodes = flatten(this.parser.parse(code) as Node[]);
     const context = { nodes };
 
     for (const visitor of this.visitors) {

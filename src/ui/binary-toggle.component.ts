@@ -1,17 +1,18 @@
 import { Component, EventEmitter, Input, Output } from '@homebots/elements';
+import { PersistentToggle } from './persistent-toggle';
 
 const template = `
 <div class="flex">
     <button
-      class="text-gray-300 border border-solid border-gray-800 hover:bg-gray-700 hover:text-white text-left px-3 py-2 rounded-md rounded-r-none text-sm font-medium"
-      [class.bg-gray-700]="this._value ===  true"
-      (click)="this.toggle(true)"
+      class="text-gray-300 border border-solid border-gray-700 hover:bg-gray-700 hover:text-white text-left px-3 py-1 rounded-md rounded-r-none text-sm font-medium"
+      [class.bg-gray-700]="this.enabled"
+      (click)="this.onToggleClick(true)"
       [innerHTML]="this.labelon"
     ></button>
     <button
-      class="text-gray-300 border border-solid border-gray-800 hover:bg-gray-700 hover:text-white text-left px-3 py-2 rounded-md rounded-l-none text-sm font-medium"
-      [class.bg-gray-700]="this._value === false"
-      (click)="this.toggle(false)"
+      class="text-gray-300 border border-solid border-gray-700 hover:bg-gray-700 hover:text-white text-left px-3 py-1 rounded-md rounded-l-none text-sm font-medium"
+      [class.bg-gray-700]="!this.enabled"
+      (click)="this.onToggleClick(false)"
       [innerHTML]="this.labeloff"
     ></button>
   </div>
@@ -22,17 +23,28 @@ const template = `
   template,
 })
 export class BinaryToggleComponent extends HTMLElement {
-  _value = false;
+  toggleState: PersistentToggle;
 
-  @Output('toggle') onToggle: EventEmitter<boolean>;
+  @Output('change') onToggle: EventEmitter<boolean>;
+
   @Input() labelon: string = '';
   @Input() labeloff: string = '';
 
-  @Input() set value(v: boolean) {
-    this._value = !!v;
+  @Input() set value(value: boolean) {
+    this.toggleState.toggle(!!value);
   }
 
-  toggle(value: boolean) {
-    this.onToggle.emit(value);
+  @Input() set name(name: string) {
+    this.toggleState = new PersistentToggle(name);
+    this.onToggle.emit(this.toggleState.enabled);
+  }
+
+  get enabled() {
+    return this.toggleState.enabled;
+  }
+
+  onToggleClick(value: boolean) {
+    this.toggleState.toggle(value);
+    this.onToggle.emit(this.toggleState.enabled);
   }
 }

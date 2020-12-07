@@ -27,49 +27,8 @@
     color: var(--primary);
   }
 
-  .table tbody tr:nth-child(even) td {
-    background-color: rgba(255, 255, 255, 0.05);
-  }
-
-  .table th,
-  .table td {
-    vertical-align: top;
-    padding: 0.5rem 1rem;
-    text-align: left;
-  }
-  .table tbody td:first-child {
-    font-family: monospace;
-    white-space: nowrap;
-  }
-  .table hr {
-    margin: 0.5rem 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-    display: block;
-    width: 100%;
-  }
-
   .output {
-    max-height: 200px;
-  }
-
-  .page-divider {
-    height: 0.5rem;
-    background-image: linear-gradient(
-      45deg,
-      var(--stripes-color) 12.5%,
-      transparent 12.5%,
-      transparent 50%,
-      var(--stripes-color) 50%,
-      var(--stripes-color) 62.5%,
-      transparent 62.5%,
-      transparent 100%
-    );
-    background-size: 5.66px 5.66px;
-  }
-
-  .mode-basic .advanced,
-  .mode-advanced .basic {
-    display: none;
+    max-height: 25vh;
   }
 
   .collapsible:not(.collapsed) > .collapsed,
@@ -81,185 +40,63 @@
     width: 30%;
   }
 </style>
-<section
-  class="flex h-full text-gray-400"
-  [class.mode-basic]="this.basicMode.enabled"
-  [class.mode-advanced]="!this.basicMode.enabled"
->
-  <aside
-    class="flex-none p-4 shadow-lg overflow-y-auto collapsible bg-gray-900"
-    [class.collapsed]="!this.sidebar.enabled"
-  >
-    <button
-      class="text-gray-300 hover:bg-gray-700 hover:text-white text-left px-3 py-2 rounded-md text-sm font-medium"
-      (click)="this.sidebar.toggle()"
-    >
-      <span class="transform block" [class.rotate-180]="!this.sidebar.enabled">&laquo;</span>
-    </button>
+<section class="flex h-full text-gray-400">
+  <aside class="flex-none p-4 shadow-lg overflow-y-auto collapsible bg-gray-900" [class.collapsed]="!this.showSidebar">
+    <x-flip-toggle [name]="'sidebar'" (change)=""></x-flip-toggle>
 
-    <div class="flex justify-between expanded">
-      <x-binary-toggle
-        (toggle)="this.basicMode.toggle($event.detail)"
-        [value]="this.basicMode.enabled"
-        [labelon]="'Basic'"
-        [labeloff]="'Advanced'"
-      ></x-binary-toggle>
+    <div class="flex justify-between collapsed">
       <button
         (click)="this.onRun()"
         class="bg-primary text-gray-800 hover:text-black text-left px-3 py-2 rounded-md text-sm font-medium"
       >
-        Run
+        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+          <path d="M0 0h24v24H0z" fill="none" />
+          <path
+            d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"
+          />
+        </svg>
       </button>
+    </div>
+    <div class="flex justify-between expanded">
+      <button
+        (click)="this.onRun()"
+        class="text-gray-800 hover:text-black text-left px-3 py-2 rounded-md text-sm font-medium"
+        [class.bg-primary]="this.program.length"
+        [class.bg-gray-400]="!this.program.length"
+      >
+        Run on esp8266
+      </button>
+      <select
+        class="bg-primary text-gray-800 hover:text-black text-left px-3 py-2 rounded-md text-sm font-medium"
+        (change)="this.onExampleSelect($event)"
+      >
+        <template *for="'example'" [of]="this.examples">
+          <option>-- Examples --</option>
+          <option [value]="example.id" [innerText]="example.title"></option>
+        </template>
+      </select>
     </div>
     <div class="expanded">
       <hr class="border-0 border-solid border-t-2 border-primary my-4 opacity-50" />
-      <h2 class="text-lg mb-3 hidden">Instructions:</h2>
-
-      <table class="table border-collapse mb-8 w-full">
-        <thead>
-          <tr>
-            <th class="border-solid border-gray-700 border-0 border-b text-lg" colspan="2">Types</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>$identifier</td>
-            <td>Variables that hold either 1 or 4 bytes (integer)</td>
-          </tr>
-          <tr>
-            <td>@2</td>
-            <td>Reference to hardware pin</td>
-          </tr>
-          <tr>
-            <td>number</td>
-            <td>123, 345, ...</td>
-          </tr>
-          <tr>
-            <td>byte</td>
-            <td>0x00..0xff</td>
-          </tr>
-          <tr>
-            <td>byte32</td>
-            <td>0x00000000..0xffffffff</td>
-          </tr>
-          <tr>
-            <td>'alice'</td>
-            <td>string (char sequence)</td>
-          </tr>
-        </tbody>
-      </table>
-      <table class="table border-collapse mb-8 w-full">
-        <thead>
-          <tr>
-            <th class="border-solid border-gray-700 border-0 border-b text-lg" colspan="2">Operators</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>$foo := 123</td>
-            <td>Assign a number to a variable.</td>
-          </tr>
-          <tr>
-            <td>$foo := 0xff</td>
-            <td>Assign a byte to a variable.</td>
-          </tr>
-          <tr>
-            <td>$foo := $bar</td>
-            <td>Copy on variable to another.</td>
-          </tr>
-          <tr>
-            <td>
-              <span class="basic">invert $bar</span>
-              <span class="advanced">$bar := !$bar</span>
-            </td>
-            <td>Invert the value of a variable.</td>
-          </tr>
-        </tbody>
-      </table>
-      <table class="table border-collapse mb-8 w-full">
-        <thead>
-          <tr>
-            <th class="border-solid border-gray-700 border-0 border-b text-lg" colspan="2">Instruction</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>@label, @foo</td>
-            <td>Creates a marker for code jumps.</td>
-          </tr>
-          <tr>
-            <td>noop</td>
-            <td>Do nothing.</td>
-          </tr>
-          <tr>
-            <td>exit</td>
-            <td>Stop program execution.</td>
-          </tr>
-          <tr>
-            <td>
-              <span class="basic">print system info</span>
-              <span class="advanced">sysinfo</span>
-            </td>
-            <td>Print system details (chip ID, free memory...).</td>
-          </tr>
-          <tr>
-            <td>dump</td>
-            <td>Stop program execution.</td>
-          </tr>
-          <tr>
-            <td>yield</td>
-            <td>Give the system some time to execute its own code.</td>
-          </tr>
-          <tr>
-            <td>restart</td>
-            <td>Restarts the system.</td>
-          </tr>
-          <tr>
-            <td>
-              enable logs
-              <hr />
-              disable logs
-            </td>
-            <td>Toggle debug messages via UART.</td>
-          </tr>
-          <tr>
-            <td>
-              <span class="basic">write $foo to pin 1</span>
-              <span class="advanced">@1 = $foo</span>
-            </td>
-            <td>Copy the value of a variable to a pin.</td>
-          </tr>
-          <tr>
-            <td>
-              <span class="basic">read pin 1 into $foo</span>
-              <span class="advanced">$foo = @1</span>
-            </td>
-            <td>Set the value from variable to a pin.</td>
-          </tr>
-        </tbody>
-      </table>
+      <code-docs></code-docs>
     </div>
   </aside>
-
+  <x-page-divider [mode]="'vertical'"></x-page-divider>
   <main class="flex flex-col flex-grow items-start w-2/3">
-    <app-code-editor class="flex-1 overflow-y-auto" (change)="this.onCodeChange($event)"></app-code-editor>
+    <code-editor class="flex-1 overflow-y-auto" (change)="this.onCodeChange($event)"></code-editor>
 
     <div class="flex-auto w-full output flex flex-col">
       <div class="relative">
         <div
           [innerHTML]="this.errorMessage"
           [class.hidden]="!this.errorMessage"
-          class="bg-primary text-gray-800 px-3 py-2 text-sm font-medium w-full absolute top-0 left-0 right-0"
+          class="bg-primary text-gray-800 px-3 py-2 text-sm font-medium w-full absolute bottom-0 left-0 right-0 z-10"
         ></div>
       </div>
-      <div class="page-divider flex-none"></div>
-      <h2 class="mb-2 p-2 flex-none bg-gray-800 text-gray-600">Output program:</h2>
-      <textarea
-        class="bg-transparent flex-1 resize-none font-mono block w-full"
-        (click)="$event.target.select()"
-        [value]="this.outputJson"
-        readonly
-      ></textarea>
+
+      <x-page-divider [mode]="'horizontal'"></x-page-divider>
+
+      <code-output class="flex-grow" [binary]="this.program"></code-output>
     </div>
   </main>
 </section>

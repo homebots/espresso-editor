@@ -1,0 +1,196 @@
+<style>
+  .table tbody tr:nth-child(even) td {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .table th,
+  .table td {
+    vertical-align: top;
+    padding: 0.5rem 1rem;
+    text-align: left;
+  }
+  .table tbody td:first-child {
+    font-family: monospace;
+    white-space: nowrap;
+  }
+  .table hr {
+    margin: 0.5rem 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    display: block;
+    width: 100%;
+  }
+  .mode-basic .advanced,
+  .mode-advanced .basic {
+    display: none;
+  }
+  table code {
+    display: block;
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.25rem;
+  }
+</style>
+
+<div [class.mode-basic]="this.basicMode" [class.mode-advanced]="!this.basicMode">
+  <x-binary-toggle
+    [name]="'docmode'"
+    (change)="this.basicMode = $event.target.enabled"
+    [labelon]="'Basic'"
+    [labeloff]="'Advanced'"
+  ></x-binary-toggle>
+
+  <h2 class="text-lg mb-3 hidden">Instructions:</h2>
+
+  <table class="table border-collapse mb-8 w-full">
+    <thead>
+      <tr>
+        <th class="border-solid border-gray-700 border-0 border-b text-lg" colspan="2">Types</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>$identifier</td>
+        <td>Variables that hold either 1 byte or 4 bytes (integer)</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="basic">pin 1</span>
+          <span class="advanced">@1</span>
+        </td>
+        <td>Reference to hardware pin</td>
+      </tr>
+      <tr>
+        <td>int32 (32-bit)</td>
+        <td>0 .. 4294967295</td>
+      </tr>
+      <tr>
+        <td>byte</td>
+        <td>0x00 .. 0xff</td>
+      </tr>
+      <tr>
+        <td>byte32</td>
+        <td>0x00000000 .. 0xffffffff</td>
+      </tr>
+      <tr>
+        <td>'alice'</td>
+        <td>String (byte sequence)</td>
+      </tr>
+      <tr>
+        <td>@foo</td>
+        <td>Label</td>
+      </tr>
+      <tr>
+        <td>**12345678</td>
+        <td>Memory access by address</td>
+      </tr>
+    </tbody>
+  </table>
+  <table class="table border-collapse mb-8 w-full">
+    <thead>
+      <tr>
+        <th class="border-solid border-gray-700 border-0 border-b text-lg" colspan="2">Operators</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>$foo = 123</td>
+        <td>Assign a number to a variable.</td>
+      </tr>
+      <tr>
+        <td>$foo = 0xff</td>
+        <td>Assign a byte to a variable.</td>
+      </tr>
+      <tr>
+        <td>$foo = $bar</td>
+        <td>Copy one variable into another.</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="basic">invert $bar</span>
+          <span class="advanced">$bar = !$bar</span>
+        </td>
+        <td>Invert the value of a variable.</td>
+      </tr>
+    </tbody>
+  </table>
+  <table class="table border-collapse mb-8 w-full">
+    <thead>
+      <tr>
+        <th class="border-solid border-gray-700 border-0 border-b text-lg" colspan="2">Instruction</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>noop</td>
+        <td>Do nothing.</td>
+      </tr>
+      <tr>
+        <td>exit</td>
+        <td>Stop program execution.</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="basic">print system info</span>
+          <span class="advanced">sysinfo</span>
+        </td>
+        <td>Print system details (chip ID, free memory...).</td>
+      </tr>
+      <tr>
+        <td>dump</td>
+        <td>Stop program execution.</td>
+      </tr>
+      <tr>
+        <td>yield</td>
+        <td>Give the system some time to execute its own code.</td>
+      </tr>
+      <tr>
+        <td>restart</td>
+        <td>Restarts the system.</td>
+      </tr>
+      <tr>
+        <td>restart</td>
+        <td>Restarts the system.</td>
+      </tr>
+      <tr>
+        <td>
+          enable logs
+          <hr />
+          disable logs
+        </td>
+        <td>Toggle debug messages via UART.</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="basic">write $foo to pin 1</span>
+          <span class="advanced">@1 = $foo</span>
+        </td>
+        <td>Copy the value of a variable to a pin.</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="basic">read pin 1 into $foo</span>
+          <span class="advanced">$foo = @1</span>
+        </td>
+        <td>Set the value from variable to a pin.</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="basic">io type of pin 1 to tx</span>
+          <span class="advanced">io type @1 tx</span>
+        </td>
+        <td>Set the operation mode of a pin. Type can be one of "tx", "rx" or "io"</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="basic">io mode of pin 1 to input</span>
+          <span class="advanced">io mode @1 input</span>
+        </td>
+        <td>Set the data direction of a pin. Mode can be one of "input", "output" or "open-drain"</td>
+      </tr>
+      <tr>
+        <td>io full-output</td>
+        <td>Set all pins to GPIO mode. Should be used after logs are disabled.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
