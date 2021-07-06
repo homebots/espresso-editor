@@ -1,5 +1,5 @@
 import { Component, Input } from '@homebots/elements';
-import { zeroPad } from '../code-compiler/helpers';
+import { zeroPad } from '../../compiler/src/helpers';
 import template from './code-output.component.htm';
 
 @Component({

@@ -1,5 +1,5 @@
 {
-  "name": "@homebots/alfred",
+  "name": "@homebots/espresso",
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
@@ -9,18 +9,16 @@
   "license": "MIT",
   "dependencies": {
     "@homebots/elements": "^0.8.0",
-    "pegjs": "^0.10.0"
+    "@homebots/espresso-compiler": "file:../espresso-compiler"
   },
   "devDependencies": {
-    "@types/pegjs": "^0.10.2",
-    "parcel-bundler": "^1.12.4",
-    "parcel-plugin-stringify-anything": "^1.2.0",
+    "parcel-bundler": "^1.9.4",
+    "parcel-plugin-stringify-anything": "^1.1.0",
     "typescript": "^4.1.2"
   },
   "assetTypesToStringify": [
     "htm",
     "css",
-    "txt",
-    "peg-grammar"
+    "txt"
   ]
 }

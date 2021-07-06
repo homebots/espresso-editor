@@ -1,0 +1,54 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+import { Component, Input } from '@homebots/elements';
+const template = `
+<style>
+x-page-divider {
+
+  background-image: linear-gradient(
+    45deg,
+    var(--stripes-color) 12.5%,
+    transparent 12.5%,
+    transparent 50%,
+    var(--stripes-color) 50%,
+    var(--stripes-color) 62.5%,
+    transparent 62.5%,
+    transparent 100%
+  );
+  background-size: 5.66px 5.66px;
+}
+
+x-page-divider[mode="vertical"] {
+  width: 0.5rem;
+}
+
+x-page-divider[mode="horizontal"] {
+  height: 0.5rem;
+}
+
+</style>
+`;
+let PageDividerComponent = class PageDividerComponent extends HTMLElement {
+    set mode(value) {
+        this.setAttribute('mode', value);
+    }
+};
+__decorate([
+    Input(),
+    __metadata("design:type", String),
+    __metadata("design:paramtypes", [String])
+], PageDividerComponent.prototype, "mode", null);
+PageDividerComponent = __decorate([
+    Component({
+        tag: 'x-page-divider',
+        template,
+    })
+], PageDividerComponent);
+export { PageDividerComponent };

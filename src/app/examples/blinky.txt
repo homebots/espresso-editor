@@ -1,23 +1,8 @@
-enable logs
+program "Blinky"
 
-var $on
-var $off
-var $interval
+var $on = 0x01
+var $off = 0x00
 
-$on =  0x01
-$off = 0x00
-$interval = 1000
-
-// cycle: gpio0 - tx - gpio2 - rx
-
-@step
-
-  @2 = $off
-  @0 = $on
-  wait $interval
-
-  @0 = $off
-  @2 = $on
-  wait $interval
-
-  jump to @step
+fn setPin $pin $value:
+  io set $pin to $value
+end

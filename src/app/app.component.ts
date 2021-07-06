@@ -1,9 +1,9 @@
 import { ChangeDetector, ChangeDetectorRef, Child, Component, Inject, OnInit } from '@homebots/elements';
-import { Compiler } from '../code-compiler/compiler';
 import { CodeEditorComponent } from '../code-editor/code-editor.component';
 import { FlipToggleComponent } from '../ui/flip-toggle.component';
 import template from './app.component.htm';
 import examples from './examples/examples';
+import { Compiler } from '@homebots/espresso';
 
 // function debounce(time: number, fn) {
 //   let timer;
@@ -20,7 +20,7 @@ import examples from './examples/examples';
 export class AppComponent extends HTMLElement implements OnInit {
   private socket: WebSocket;
 
-  @Inject(Compiler) compiler: Compiler;
+  @Inject(Compiler) espresso: Compiler;
   @Inject(ChangeDetectorRef) cd: ChangeDetector;
 
   @Child('code-editor', true) editor: CodeEditorComponent;
@@ -30,7 +30,7 @@ export class AppComponent extends HTMLElement implements OnInit {
     return this.sidebarToggle && this.sidebarToggle.enabled;
   }
 
-  program: number[] = [];
+  program: any[] = [];
   errorMessage = '';
   examples = examples;
 
@@ -76,13 +76,14 @@ export class AppComponent extends HTMLElement implements OnInit {
 
   private compile(code: string) {
     try {
-      this.program = this.compiler.compile(code + '\n');
+      this.program = this.espresso.compile(code);
       this.errorMessage = '';
     } catch (error) {
       this.program = [];
 
       if (error.location) {
-        this.errorMessage = 'Line ' + error.location.start.line + ': ' + error.message;
+        this.errorMessage =
+          'Line ' + error.location.start.line + ',' + error.location.start.column + ': ' + error.message;
       } else {
         this.errorMessage = String(error);
       }

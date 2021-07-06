@@ -1,0 +1,15 @@
+disable logs
+
+var $interval
+var $count
+
+$interval = 1000
+$count = 10
+
+@step
+  !!@2
+  !!@0
+  --$count
+  wait $interval
+
+  jump if $count to @step
