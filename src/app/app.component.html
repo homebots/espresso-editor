@@ -1,52 +1,10 @@
-<style>
-  :root {
-    --gray: #374046;
-    --primary: #f0db4f;
-    --stripes-color: #f0db4f;
-  }
-
-  html,
-  body,
-  app-root {
-    height: 100%;
-  }
-
-  app-root {
-    display: block;
-  }
-
-  .bg-primary {
-    background-color: var(--primary);
-  }
-
-  .border-primary {
-    border-color: var(--primary);
-  }
-
-  .text-primary {
-    color: var(--primary);
-  }
-
-  .output {
-    max-height: 25vh;
-  }
-
-  .collapsible:not(.collapsed) > .collapsed,
-  .collapsible.collapsed > .expanded {
-    display: none;
-  }
-
-  aside:not(.collapsed) {
-    width: 30%;
-  }
-</style>
 <section class="flex h-full text-gray-400">
-  <aside class="flex-none p-4 shadow-lg overflow-y-auto collapsible bg-gray-900" [class.collapsed]="!this.showSidebar">
-    <x-flip-toggle [name]="'sidebar'" (change)=""></x-flip-toggle>
+  <aside class="flex-none p-4 shadow-lg overflow-y-auto collapsible bg-gray-900" [class.collapsed]="!showSidebar">
+    <app-flip-toggle [name]="'sidebar'" (change)="showSidebar = $event"></app-flip-toggle>
 
     <div class="flex justify-between collapsed">
       <button
-        (click)="this.onRun()"
+        (click)="onRun()"
         class="bg-primary text-gray-800 hover:text-black text-left px-3 py-2 rounded-md text-sm font-medium"
       >
         <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
@@ -59,44 +17,44 @@
     </div>
     <div class="flex justify-between expanded">
       <button
-        (click)="this.onRun()"
+        (click)="onRun()"
         class="text-gray-800 hover:text-black text-left px-3 py-2 rounded-md text-sm font-medium"
-        [class.bg-primary]="this.program.length"
-        [class.bg-gray-400]="!this.program.length"
+        [class.bg-primary]="program.length"
+        [class.bg-gray-400]="!program.length"
       >
         Run on esp8266
       </button>
-      <select
+      <!-- <select
         class="bg-primary text-gray-800 hover:text-black text-left px-3 py-2 rounded-md text-sm font-medium"
-        (change)="this.onExampleSelect($event)"
+        (change)="onExampleSelect($event)"
       >
         <option>-- Examples --</option>
-        <template *for="'example'" [of]="this.examples">
+        <template *ngFor="let example of examples">
           <option [value]="example.id" [innerText]="example.title"></option>
         </template>
-      </select>
+      </select> -->
     </div>
     <div class="expanded">
       <hr class="border-0 border-solid border-t-2 border-primary my-4 opacity-50" />
       <code-docs></code-docs>
     </div>
   </aside>
-  <x-page-divider [mode]="'vertical'"></x-page-divider>
+  <app-page-divider [mode]="'vertical'"></app-page-divider>
   <main class="flex flex-col flex-grow items-start w-2/3">
-    <code-editor class="flex-1 overflow-y-auto" (change)="this.onCodeChange($event)"></code-editor>
+    <app-code-editor class="flex-1" (change)="onCodeChange($event)"></app-code-editor>
 
     <div class="flex-auto w-full output flex flex-col">
       <div class="relative">
         <div
-          [innerHTML]="this.errorMessage"
-          [class.hidden]="!this.errorMessage"
+          [innerHTML]="errorMessage"
+          [class.hidden]="!errorMessage"
           class="bg-primary text-gray-800 px-3 py-2 text-sm font-medium w-full absolute bottom-0 left-0 right-0 z-10"
         ></div>
       </div>
 
-      <x-page-divider [mode]="'horizontal'"></x-page-divider>
+      <app-page-divider [mode]="'horizontal'"></app-page-divider>
 
-      <code-output class="flex-grow" [binary]="this.program"></code-output>
+      <app-code-output class="flex-grow" [binary]="program"></app-code-output>
     </div>
   </main>
 </section>

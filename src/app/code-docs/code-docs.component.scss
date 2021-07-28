@@ -1,0 +1,30 @@
+.table tbody tr:nth-child(even) td {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.table th,
+.table td {
+  vertical-align: top;
+  padding: 0.5rem 1rem;
+  text-align: left;
+}
+.table tbody td:first-child {
+  font-family: monospace;
+  white-space: nowrap;
+}
+.table hr {
+  margin: 0.5rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  display: block;
+  width: 100%;
+}
+.mode-basic .advanced,
+.mode-advanced .basic {
+  display: none;
+}
+table code {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: inherit;
+}

@@ -1,5 +1,5 @@
-import { Component, EventEmitter, Input, Output } from '@homebots/elements';
-import styles from './code-editor.component.css';
+import { Component, ElementRef, EventEmitter, Input, Output } from '@angular/core';
+import { mode } from '../../../.vscode/espresso.mode';
 
 export interface EditorError {
   line: number;
@@ -7,34 +7,34 @@ export interface EditorError {
 }
 
 @Component({
-  tag: 'code-editor',
-  styles,
+  selector: 'app-code-editor',
+  styleUrls: ['./code-editor.component.scss'],
+  template: '',
 })
-export class CodeEditorComponent extends HTMLElement {
-  @Output('change')
-  readonly onChange: EventEmitter<string>;
+export class CodeEditorComponent {
+  constructor(private ref: ElementRef) {}
 
-  @Input()
-  mode: string = 'javascript';
+  @Output('change') readonly onChange = new EventEmitter<string>();
+  @Input() mode: string = 'javascript';
 
   get value(): string {
-    return this.editor.getValue();
+    return this.editor?.getValue() ?? '';
   }
 
   set value(code: string) {
     if (this.value !== code) {
-      this.editor.setValue(code);
+      this.editor?.setValue(code);
     }
   }
 
   private editor: any;
 
-  onInit() {
+  ngOnInit() {
     this.createEditor();
   }
 
   createEditor() {
-    this.editor = (self as any).CodeMirror(this, {
+    this.editor = (self as any).CodeMirror(this.ref.nativeElement, {
       mode: this.mode,
       theme: 'dracula',
       lineNumbers: true,
@@ -42,7 +42,7 @@ export class CodeEditorComponent extends HTMLElement {
       autocorrect: true,
     });
 
-    this.editor.on('change', (editor) => {
+    this.editor.on('change', (editor: any) => {
       const code = editor.getValue();
       localStorage.setItem('code', code);
       this.emitCode(code);
@@ -56,6 +56,6 @@ export class CodeEditorComponent extends HTMLElement {
   }
 
   private emitCode(code: string) {
-    this.onChange.emit(code);
+    this.onChange.emit(code || '');
   }
 }

@@ -1,9 +1,7 @@
-import { Component, Input } from '@homebots/elements';
+import { Component, ElementRef, Input } from '@angular/core';
 
-const template = `
-<style>
-x-page-divider {
-
+const styles = `
+:host {
   background-image: linear-gradient(
     45deg,
     var(--stripes-color) 12.5%,
@@ -17,23 +15,23 @@ x-page-divider {
   background-size: 5.66px 5.66px;
 }
 
-x-page-divider[mode="vertical"] {
+:host[mode="vertical"] {
   width: 0.5rem;
 }
 
-x-page-divider[mode="horizontal"] {
+:host[mode="horizontal"] {
   height: 0.5rem;
 }
-
-</style>
 `;
-
 @Component({
-  tag: 'x-page-divider',
-  template,
+  selector: 'app-page-divider',
+  styles: [styles],
+  template: '<span></span>',
 })
-export class PageDividerComponent extends HTMLElement {
+export class PageDividerComponent {
+  constructor(private el: ElementRef) {}
+
   @Input() set mode(value: 'horizontal' | 'vertical') {
-    this.setAttribute('mode', value);
+    this.el.nativeElement.setAttribute('mode', value);
   }
 }

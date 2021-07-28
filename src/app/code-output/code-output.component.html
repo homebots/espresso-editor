@@ -1,17 +1,18 @@
 <div class="flex flex-col h-full">
   <h2 class="p-2 flex-none bg-gray-800 text-gray-600 flex justify-between">
-    <div class="py-1">Output program (<span [innerText]="this.length"></span> bytes)</div>
-    <x-binary-toggle
+    <div class="py-1">Output program ({{ length }} bytes)</div>
+    <app-binary-toggle
       [name]="'output-mode'"
-      (change)="this.onToggle($event)"
+      (change)="onToggle($event)"
       [labelon]="'Hexadecimal'"
       [labeloff]="'Decimal'"
-    ></x-binary-toggle>
+    ></app-binary-toggle>
   </h2>
   <textarea
     class="bg-transparent flex-1 resize-none font-mono block w-full p-2"
-    (click)="$event.target.select()"
-    [value]="this.json"
+    #text
+    (click)="text.select()"
+    [value]="json"
     readonly
   ></textarea>
 </div>

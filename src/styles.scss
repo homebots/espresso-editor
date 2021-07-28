@@ -1,9 +1,10 @@
 :root {
   --background: #374046;
   --primary: #f0db4f;
+  --gray: #374046;
+  --stripes-color: #f0db4f;
 }
 
-html,
-body {
+.CodeMirror {
   height: 100%;
 }

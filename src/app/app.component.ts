@@ -1,46 +1,27 @@
-import { ChangeDetector, ChangeDetectorRef, Child, Component, Inject, OnInit } from '@homebots/elements';
-import { Compiler } from '../code-compiler/compiler';
-import { CodeEditorComponent } from '../code-editor/code-editor.component';
-import { FlipToggleComponent } from '../ui/flip-toggle.component';
-import template from './app.component.htm';
-import examples from './examples/examples';
-
-// function debounce(time: number, fn) {
-//   let timer;
-//   return function (...args: any[]) {
-//     clearTimeout(timer);
-//     timer = setTimeout(() => fn.apply(this, args), time);
-//   };
-// }
+import { Component, ViewChild } from '@angular/core';
+import { compile } from '@homebots/espresso-compiler';
+import { CodeEditorComponent } from './code-editor/code-editor.component';
 
 @Component({
-  tag: 'app-root',
-  template,
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
 })
-export class AppComponent extends HTMLElement implements OnInit {
-  private socket: WebSocket;
+export class AppComponent {
+  protected socket!: WebSocket;
 
-  @Inject(Compiler) compiler: Compiler;
-  @Inject(ChangeDetectorRef) cd: ChangeDetector;
+  @ViewChild('app-code-editor') editor!: CodeEditorComponent;
 
-  @Child('code-editor', true) editor: CodeEditorComponent;
-  @Child('x-flip-toggle') sidebarToggle: FlipToggleComponent;
-
-  get showSidebar() {
-    return this.sidebarToggle && this.sidebarToggle.enabled;
-  }
-
+  showSidebar = false;
   program: number[] = [];
   errorMessage = '';
-  examples = examples;
+  examples = [];
 
-  onInit() {
+  ngOnInit() {
     this.connectWebSocket();
   }
 
-  onCodeChange() {
-    const code = this.editor.value.trim();
-
+  onCodeChange(code: string) {
     if (code) {
       this.compile(code);
     }
@@ -57,16 +38,15 @@ export class AppComponent extends HTMLElement implements OnInit {
     this.socket.send(message);
   }
 
-  onExampleSelect($event) {
-    const selected = $event.target.value;
-    const example = this.examples.find((item) => item.id === selected);
-
-    if (example) {
-      this.editor.value = example.code;
-    }
+  onExampleSelect(_d$event: any) {
+    // const selected = $event.target.value;
+    // const example = this.examples.find((item) => item.id === selected);
+    // if (example) {
+    //   this.editor.value = example.code;
+    // }
   }
 
-  private connectWebSocket() {
+  protected connectWebSocket() {
     const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
     this.socket = new WebSocket(`${protocol}//hub.homebots.io/hub/display`);
     this.socket.onmessage = ({ data }) => console.log(data);
@@ -74,9 +54,9 @@ export class AppComponent extends HTMLElement implements OnInit {
     this.socket.onclose = () => setTimeout(() => this.connectWebSocket(), 3000);
   }
 
-  private compile(code: string) {
+  protected compile(code: string) {
     try {
-      this.program = this.compiler.compile(code + '\n');
+      this.program = compile(code);
       this.errorMessage = '';
     } catch (error) {
       this.program = [];
@@ -89,7 +69,5 @@ export class AppComponent extends HTMLElement implements OnInit {
 
       console.error(error);
     }
-
-    this.cd.markAsDirtyAndCheck();
   }
 }

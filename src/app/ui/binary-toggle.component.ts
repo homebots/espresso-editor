@@ -1,31 +1,31 @@
-import { Component, DomEventEmitter, Input } from '@homebots/elements';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { PersistentToggle } from './persistent-toggle';
 
 const template = `
-<div class="flex">
+  <div class="flex">
     <button
       class="text-gray-300 border border-solid border-gray-700 hover:bg-gray-700 hover:text-white text-left px-3 py-1 rounded-md rounded-r-none text-sm font-medium"
-      [class.bg-gray-700]="this.enabled"
-      (click)="this.onToggleClick(true)"
-      [innerHTML]="this.labelon"
+      [class.bg-gray-700]="enabled"
+      (click)="onToggleClick(true)"
+      [innerHTML]="labelon"
     ></button>
     <button
       class="text-gray-300 border border-solid border-gray-700 hover:bg-gray-700 hover:text-white text-left px-3 py-1 rounded-md rounded-l-none text-sm font-medium"
-      [class.bg-gray-700]="!this.enabled"
-      (click)="this.onToggleClick(false)"
-      [innerHTML]="this.labeloff"
+      [class.bg-gray-700]="!enabled"
+      (click)="onToggleClick(false)"
+      [innerHTML]="labeloff"
     ></button>
   </div>
 `;
 
 @Component({
-  tag: 'x-binary-toggle',
+  selector: 'app-binary-toggle',
   template,
 })
-export class BinaryToggleComponent extends HTMLElement {
-  toggleState: PersistentToggle;
-  change = new DomEventEmitter<boolean>(this, 'change');
+export class BinaryToggleComponent {
+  toggleState = new PersistentToggle('');
 
+  @Output('change') readonly onChange = new EventEmitter<boolean>();
   @Input() labelon: string = '';
   @Input() labeloff: string = '';
 
@@ -35,7 +35,6 @@ export class BinaryToggleComponent extends HTMLElement {
 
   @Input() set name(name: string) {
     this.toggleState = new PersistentToggle(name);
-    this.change.emit(this.toggleState.enabled);
   }
 
   get enabled() {
@@ -44,6 +43,14 @@ export class BinaryToggleComponent extends HTMLElement {
 
   onToggleClick(value: boolean) {
     this.toggleState.toggle(value);
-    this.change.emit(this.toggleState.enabled);
+    this.emitEvent();
+  }
+
+  ngOnInit() {
+    this.emitEvent();
+  }
+
+  protected emitEvent() {
+    setTimeout(() => this.onChange.emit(this.toggleState.enabled));
   }
 }
