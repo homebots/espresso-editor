@@ -1,9 +1,0 @@
-disable logs
-io type @1 io
-io type @3 io
-io mode @1 output
-io mode @3 output
-
-// or
-
-io only outputs

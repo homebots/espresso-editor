@@ -2,198 +2,122 @@
   <app-binary-toggle
     [name]="'docmode'"
     (change)="basicMode = $event"
-    [labelon]="'Basic'"
-    [labeloff]="'Advanced'"
+    [labelon]="'Instructions'"
+    [labeloff]="'Examples'"
+    class="block mb-3"
   ></app-binary-toggle>
 
-  <h2 class="text-lg mb-3 hidden">Instructions:</h2>
+  <div *ngIf="basicMode">
+    <h2 class="text-lg mb-3 hidden">Instructions:</h2>
 
-  <table class="table border-collapse mb-8 w-full">
-    <thead>
-      <tr>
-        <th class="border-solid border-gray-700 border-0 border-b text-lg" colspan="2">Types</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>$identifier</td>
-        <td>Variables that hold either 1 byte or 4 bytes (integer)</td>
-      </tr>
-      <tr>
-        <td>
-          <span class="basic">pin 1</span>
-          <span class="advanced">@1</span>
-        </td>
-        <td>Reference to hardware pin</td>
-      </tr>
-      <tr>
-        <td>int32 (32-bit)</td>
-        <td>0 .. 4294967295</td>
-      </tr>
-      <tr>
-        <td>byte</td>
-        <td>0x00 .. 0xff</td>
-      </tr>
-      <tr>
-        <td>byte32</td>
-        <td>0x00000000 .. 0xffffffff</td>
-      </tr>
-      <tr>
-        <td>'alice'</td>
-        <td>String (byte sequence)</td>
-      </tr>
-      <tr>
-        <td>**12345678</td>
-        <td>Memory access by address</td>
-      </tr>
-      <tr>
-        <td>@foo</td>
-        <td>Label</td>
-      </tr>
-      <tr>
-        <td>// bla bla bla</td>
-        <td>A comment</td>
-      </tr>
-    </tbody>
-  </table>
-  <table class="table border-collapse mb-8 w-full">
-    <thead>
-      <tr>
-        <th class="border-solid border-gray-700 border-0 border-b text-lg" colspan="2">Operators</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>var $foo</td>
-        <td>Declare a variable.</td>
-      </tr>
-      <tr>
-        <td>$foo = 123</td>
-        <td>Assign a number to a variable.</td>
-      </tr>
-      <tr>
-        <td>$foo = 0xff</td>
-        <td>Assign a byte to a variable.</td>
-      </tr>
-      <tr>
-        <td>$foo = $bar</td>
-        <td>Copy one variable into another.</td>
-      </tr>
-      <tr>
-        <td>++$foo</td>
-        <td>Increment variable by 1.</td>
-      </tr>
-      <tr>
-        <td>--$foo</td>
-        <td>Decrement variable by 1.</td>
-      </tr>
-      <tr>
-        <td>
-          <span class="basic">invert $bar</span>
-          <span class="advanced">!!$bar</span>
-        </td>
-        <td>Invert the value of a variable.</td>
-      </tr>
-    </tbody>
-  </table>
-  <table class="table border-collapse mb-8 w-full">
-    <thead>
-      <tr>
-        <th class="border-solid border-gray-700 border-0 border-b text-lg" colspan="2">Instruction</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>noop</td>
-        <td>Do nothing.</td>
-      </tr>
-      <tr>
-        <td>exit</td>
-        <td>Stop program execution.</td>
-      </tr>
-      <tr>
-        <td>
-          <span class="basic">print system info</span>
-          <span class="advanced">sysinfo</span>
-        </td>
-        <td>Print system details (chip ID, free memory...).</td>
-      </tr>
-      <tr>
-        <td>dump</td>
-        <td>Stop program execution.</td>
-      </tr>
-      <tr>
-        <td>yield</td>
-        <td>Give the system some time to execute its own code.</td>
-      </tr>
-      <tr>
-        <td>restart</td>
-        <td>Restarts the system.</td>
-      </tr>
-      <tr>
-        <td>
-          enable logs
-          <hr />
-          disable logs
-        </td>
-        <td>Toggle debug messages via UART.</td>
-      </tr>
-      <tr>
-        <td>raw "00 11 12 ff"</td>
-        <td>Insert raw bytes into the program.</td>
-      </tr>
-      <tr>
-        <td>jump to @label</td>
-        <td>Jumps to a point of the program marked by a label.</td>
-      </tr>
-      <tr>
-        <td>jump to @label if $foo</td>
-        <td>Jumps to a point of the program marked by a label if the value of a variable is not zero.</td>
-      </tr>
-      <tr>
-        <td>wait 10</td>
-        <td>Wait for a given time (milliseconds).</td>
-      </tr>
-      <tr>
-        <td>wait $foo</td>
-        <td>Wait for a given time assigned to a variable (milliseconds).</td>
-      </tr>
-      <tr>
-        <td>print 'hello!'</td>
-        <td>Print a string to the output.</td>
-      </tr>
-      <tr>
-        <td>
-          <span class="basic">write $foo to pin 1</span>
-          <span class="advanced">@1 = $foo</span>
-        </td>
-        <td>Copy the value of a variable to a pin.</td>
-      </tr>
-      <tr>
-        <td>
-          <span class="basic">read pin 1 into $foo</span>
-          <span class="advanced">$foo = @1</span>
-        </td>
-        <td>Copy the value of a pin to a variable.</td>
-      </tr>
-      <tr>
-        <td>
-          <span class="basic">io type of pin 1 to tx</span>
-          <span class="advanced">io type @1 tx</span>
-        </td>
-        <td>Set the type of a pin. Type can be one of "tx", "rx" or "io"</td>
-      </tr>
-      <tr>
-        <td>
-          <span class="basic">io mode of pin 1 to input</span>
-          <span class="advanced">io mode @1 input</span>
-        </td>
-        <td>Set the data flow of a pin. One of "input", "output", "pull-up-input" or "open-drain"</td>
-      </tr>
-      <tr>
-        <td>io only outputs</td>
-        <td>Set all pins to IO mode. Should be used after <code>disable logs</code></td>
-      </tr>
-    </tbody>
-  </table>
+    <h3 class="border-solid border-gray-700 border-0 border-b text-lg mb-3">Types</h3>
+    <code>
+      <pre>
+  byte $a = 1h
+  boolean $b = true
+  int $c = -1
+  int $d = +10
+  uint $e = 123
+  string $f = 'hello'
+  address $g = 0x00543f01
+  </pre
+      >
+    </code>
+
+    <h3 class="border-solid border-gray-700 border-0 border-b text-lg mb-3">Operators</h3>
+    <code>
+      <pre>
+  uint $a = 0
+  uint $b = 1
+  uint $c = 2
+  $a = 1
+  $a = $b + $c
+  $a = $b - $c
+  $a = $b * $c
+  $a = $b / $c
+  $a = $b and $c
+  $a = $b or $c
+  $a = $b xor $c
+  $a = $b == $c
+  $a = $b != $c
+  $a = $b > $c
+  $a = $b >= $c
+  $a = $b &lt; $c
+  $a = $b &lt;= $c
+  $a = $b % $c
+  $a = not $b
+  inc $a
+  dec $a
+    </pre
+      >
+    </code>
+
+    <h3 class="border-solid border-gray-700 border-0 border-b text-lg mb-3">I/O pins</h3>
+    <code>
+      <pre>
+  byte $value = 0h
+
+  io type pin 2, 0
+  io mode pin 0, input
+  io read $value, pin 0
+  io write pin 2, $value
+  io all out
+    </pre
+      >
+    </code>
+
+    <h3 class="border-solid border-gray-700 border-0 border-b text-lg mb-3">System</h3>
+    <code>
+      <pre>
+  debug true
+  halt
+  noop
+  sysinfo
+  dump
+  print 'hello'
+  debug false
+  delay 1000
+  yield 1
+  sleep 1000
+  restart
+    </pre
+      >
+    </code>
+  </div>
+</div>
+<div *ngIf="!basicMode">
+  <h3 class="border-solid border-gray-700 border-0 border-b text-lg mb-3">Stepper motor</h3>
+  <code>
+    <pre>
+debug false
+io all out
+
+// int $interval = 5
+// cycle: gpio0 - tx - gpio2 - rx
+
+@step
+
+io write pin 0, true
+io write pin 1, true
+delay 5
+
+io write pin 0, false
+io write pin 2, true
+delay 5
+
+io write pin 1, false
+io write pin 3, true
+delay 5
+
+io write pin 2, false
+io write pin 0, true
+delay 5
+
+io write pin 3, false
+io write pin 1, true
+
+jump to label step
+
+    </pre>
+  </code>
 </div>

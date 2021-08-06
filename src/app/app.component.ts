@@ -15,16 +15,26 @@ export class AppComponent {
   showSidebar = false;
   program: number[] = [];
   errorMessage = '';
+  device = '';
   examples = [];
 
+  get canRunRemotely() {
+    return Boolean(this.program.length && this.device.length);
+  }
+
   ngOnInit() {
+    this.device = localStorage.getItem('deviceName') || '';
     this.connectWebSocket();
   }
 
   onCodeChange(code: string) {
-    if (code) {
-      this.compile(code);
-    }
+    this.compile(code);
+  }
+
+  onDeviceChange($event: any) {
+    this.device = $event.target.value;
+    this.connectWebSocket();
+    localStorage.setItem('deviceName', this.device);
   }
 
   onRun() {
@@ -48,8 +58,18 @@ export class AppComponent {
 
   protected connectWebSocket() {
     const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    this.socket = new WebSocket(`${protocol}//hub.homebots.io/hub/display`);
-    this.socket.onmessage = ({ data }) => console.log(data);
+    const device = this.device;
+
+    if (!device) {
+      return;
+    }
+
+    if (this.socket) {
+      this.socket.close();
+    }
+
+    this.socket = new WebSocket(`${protocol}//hub.homebots.io/hub/${device}`);
+    this.socket.onmessage = ({ data }) => console.log('RECV', data);
     this.socket.onopen = () => this.socket.send('text');
     this.socket.onclose = () => setTimeout(() => this.connectWebSocket(), 3000);
   }

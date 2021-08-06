@@ -14,7 +14,7 @@ export interface EditorError {
 export class CodeEditorComponent {
   constructor(private ref: ElementRef) {}
 
-  @Output('change') readonly onChange = new EventEmitter<string>();
+  @Output('codechange') readonly onChange = new EventEmitter<string>();
   @Input() mode: string = 'javascript';
 
   get value(): string {

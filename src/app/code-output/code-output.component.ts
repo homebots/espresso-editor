@@ -11,7 +11,7 @@ export class CodeOutputComponent {
 
   get json() {
     const data = this.hexadecimal
-      ? this.binary.map((x) => this.zeroPad(x.toString(16))).join(' ')
+      ? this.binary.map((x) => this.zeroPad(Number(x).toString(16))).join(' ')
       : JSON.stringify(this.binary);
 
     return data;

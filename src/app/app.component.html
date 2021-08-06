@@ -16,11 +16,30 @@
       </button>
     </div>
     <div class="flex justify-between expanded">
+      <input
+        type="text"
+        name="device"
+        [value]="device"
+        (change)="onDeviceChange($event)"
+        placeholder="Device name"
+        class="
+          text-gray-300
+          border border-solid border-gray-700
+          hover:bg-gray-700 hover:text-white
+          text-left
+          px-3
+          py-1
+          rounded-md
+          text-sm
+          font-medium
+          bg-gray-700
+        "
+      />
       <button
         (click)="onRun()"
         class="text-gray-800 hover:text-black text-left px-3 py-2 rounded-md text-sm font-medium"
-        [class.bg-primary]="program.length"
-        [class.bg-gray-400]="!program.length"
+        [class.bg-primary]="canRunRemotely"
+        [class.bg-gray-400]="!canRunRemotely"
       >
         Run on esp8266
       </button>
@@ -41,14 +60,28 @@
   </aside>
   <app-page-divider [mode]="'vertical'"></app-page-divider>
   <main class="flex flex-col flex-grow items-start w-2/3">
-    <app-code-editor class="flex-1" (change)="onCodeChange($event)"></app-code-editor>
+    <app-code-editor class="flex-1" (codechange)="onCodeChange($event)"></app-code-editor>
 
     <div class="flex-auto w-full output flex flex-col">
       <div class="relative">
         <div
           [innerHTML]="errorMessage"
           [class.hidden]="!errorMessage"
-          class="bg-primary text-gray-800 px-3 py-2 text-sm font-medium w-full absolute bottom-0 left-0 right-0 z-10"
+          class="
+            bg-primary
+            text-gray-800
+            px-3
+            py-2
+            text-sm
+            font-mono font-medium
+            w-full
+            absolute
+            whitespace-pre-wrap
+            bottom-0
+            left-0
+            right-0
+            z-10
+          "
         ></div>
       </div>
 
